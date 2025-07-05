@@ -1,14 +1,14 @@
 
+import React from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { useRoleRedirect } from "@/hooks/useRoleRedirect";
 
-// Import role-specific dashboard components
-import TenantDashboard from "@/components/dashboard/TenantDashboard";
-import LandlordDashboard from "@/components/dashboard/LandlordDashboard";
-import AgentDashboard from "@/components/dashboard/AgentDashboard";
+// Import enhanced dashboard components
+import EnhancedTenantDashboard from "@/components/dashboard/enhanced/EnhancedTenantDashboard";
+import EnhancedLandlordDashboard from "@/components/dashboard/enhanced/EnhancedLandlordDashboard";
+import EnhancedAgentDashboard from "@/components/dashboard/enhanced/EnhancedAgentDashboard";
 import AdminDashboard from "@/components/dashboard/AdminDashboard";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import DashboardNavigation from "@/components/dashboard/DashboardNavigation";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 const Dashboard = () => {
   const { userProfile, loading } = useAuth();
@@ -36,50 +36,33 @@ const Dashboard = () => {
   const renderDashboardByRole = () => {
     switch (userProfile.role) {
       case "tenant":
-        return <TenantDashboard />;
+        return <EnhancedTenantDashboard />;
       case "landlord":
-        return <LandlordDashboard />;
+        return <EnhancedLandlordDashboard />;
       case "agent":
-        return <AgentDashboard />;
+        return <EnhancedAgentDashboard />;
       case "real_estate_company":
-        return <AgentDashboard />; // Same as agent for now
+        return <EnhancedAgentDashboard />; // Reuse agent dashboard for now
       case "service_provider":
-        return <AgentDashboard />; // Same as agent for now  
+        return <EnhancedAgentDashboard />; // Placeholder - customize later
       case "developer":
-        return <AgentDashboard />; // Same as agent for now
+        return <EnhancedAgentDashboard />; // Placeholder - customize later
       case "investor":
-        return <AgentDashboard />; // Same as agent for now
+        return <EnhancedAgentDashboard />; // Placeholder - customize later
       case "short_term_host":
-        return <AgentDashboard />; // Same as agent for now
+        return <EnhancedAgentDashboard />; // Placeholder - customize later
       case "admin":
       case "super_admin":
         return <AdminDashboard />;
       default:
-        return <TenantDashboard />;
+        return <EnhancedTenantDashboard />;
     }
   };
 
-  // Mock wallet balance for now - will be replaced with real data later
-  const mockUser = {
-    name: userProfile.full_name,
-    email: userProfile.id, // Will get email from auth.users if needed
-    role: userProfile.role,
-    avatar: "/placeholder.svg",
-    walletBalance: 125000
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardNavigation 
-        currentRole={userProfile.role} 
-        setCurrentRole={() => {}} // Remove role switching in production
-      />
-
-      <div className="container mx-auto px-4 py-8">
-        <DashboardHeader user={mockUser} />
-        {renderDashboardByRole()}
-      </div>
-    </div>
+    <DashboardLayout>
+      {renderDashboardByRole()}
+    </DashboardLayout>
   );
 };
 
