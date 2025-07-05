@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRoleRedirect } from "@/hooks/useRoleRedirect";
 
 // Import role-specific dashboard components
 import TenantDashboard from "@/components/dashboard/TenantDashboard";
@@ -10,26 +11,46 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardNavigation from "@/components/dashboard/DashboardNavigation";
 
 const Dashboard = () => {
-  // Mock user data - in real app, get from Firebase Auth + MongoDB
-  const [user] = useState({
-    name: "John Doe",
-    email: "john.doe@email.com",
-    role: "tenant", // This would come from your database
-    avatar: "/placeholder.svg",
-    walletBalance: 125000
-  });
+  const { userProfile, loading } = useAuth();
+  useRoleRedirect();
 
-  // Role switcher for testing (remove in production)
-  const [currentRole, setCurrentRole] = useState(user.role);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Loading Profile...</h2>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
 
   const renderDashboardByRole = () => {
-    switch (currentRole) {
+    switch (userProfile.role) {
       case "tenant":
         return <TenantDashboard />;
       case "landlord":
         return <LandlordDashboard />;
       case "agent":
         return <AgentDashboard />;
+      case "real_estate_company":
+        return <AgentDashboard />; // Same as agent for now
+      case "service_provider":
+        return <AgentDashboard />; // Same as agent for now  
+      case "developer":
+        return <AgentDashboard />; // Same as agent for now
+      case "investor":
+        return <AgentDashboard />; // Same as agent for now
+      case "short_term_host":
+        return <AgentDashboard />; // Same as agent for now
       case "admin":
       case "super_admin":
         return <AdminDashboard />;
@@ -38,15 +59,24 @@ const Dashboard = () => {
     }
   };
 
+  // Mock wallet balance for now - will be replaced with real data later
+  const mockUser = {
+    name: userProfile.full_name,
+    email: userProfile.id, // Will get email from auth.users if needed
+    role: userProfile.role,
+    avatar: "/placeholder.svg",
+    walletBalance: 125000
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <DashboardNavigation 
-        currentRole={currentRole} 
-        setCurrentRole={setCurrentRole} 
+        currentRole={userProfile.role} 
+        setCurrentRole={() => {}} // Remove role switching in production
       />
 
       <div className="container mx-auto px-4 py-8">
-        <DashboardHeader user={{ ...user, role: currentRole }} />
+        <DashboardHeader user={mockUser} />
         {renderDashboardByRole()}
       </div>
     </div>

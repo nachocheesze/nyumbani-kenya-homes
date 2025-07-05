@@ -1,13 +1,21 @@
 
-import { Home } from "lucide-react";
+import { Home, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardNavigationProps {
   currentRole: string;
   setCurrentRole: (role: string) => void;
 }
 
-const DashboardNavigation = ({ currentRole, setCurrentRole }: DashboardNavigationProps) => {
+const DashboardNavigation = ({ currentRole }: DashboardNavigationProps) => {
+  const { signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
     <nav className="border-b bg-white">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -24,18 +32,16 @@ const DashboardNavigation = ({ currentRole, setCurrentRole }: DashboardNavigatio
           </Link>
         </div>
         
-        {/* Role Switcher for Testing - Remove in Production */}
         <div className="flex items-center space-x-4">
-          <select 
-            value={currentRole} 
-            onChange={(e) => setCurrentRole(e.target.value)}
-            className="px-3 py-1 border rounded text-sm"
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSignOut}
+            className="flex items-center space-x-2"
           >
-            <option value="tenant">Tenant</option>
-            <option value="landlord">Landlord</option>
-            <option value="agent">Agent</option>
-            <option value="admin">Admin</option>
-          </select>
+            <LogOut className="h-4 w-4" />
+            <span>Sign Out</span>
+          </Button>
         </div>
       </div>
     </nav>
