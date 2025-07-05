@@ -8,7 +8,6 @@ import EnhancedTenantDashboard from "@/components/dashboard/enhanced/EnhancedTen
 import EnhancedLandlordDashboard from "@/components/dashboard/enhanced/EnhancedLandlordDashboard";
 import EnhancedAgentDashboard from "@/components/dashboard/enhanced/EnhancedAgentDashboard";
 import AdminDashboard from "@/components/dashboard/AdminDashboard";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 const Dashboard = () => {
   const { userProfile, loading } = useAuth();
@@ -59,11 +58,7 @@ const Dashboard = () => {
     }
   };
 
-  return (
-    <DashboardLayout>
-      {renderDashboardByRole()}
-    </DashboardLayout>
-  );
+  return renderDashboardByRole();
 };
 
 export default Dashboard;
