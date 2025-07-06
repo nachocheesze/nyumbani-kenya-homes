@@ -21,10 +21,12 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const location = useLocation();
   const isDashboardRoute = location.pathname.startsWith('/dashboard');
+  const isAccountRoute = location.pathname.startsWith('/account') || location.pathname.startsWith('/profile');
+  const shouldHideHeader = isDashboardRoute || isAccountRoute;
 
   return (
     <>
-      {!isDashboardRoute && (
+      {!shouldHideHeader && (
         <header className="border-b bg-white sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <div className="flex items-center space-x-2">
