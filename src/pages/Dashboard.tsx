@@ -1,64 +1,74 @@
 
 import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
 import { useRoleRedirect } from "@/hooks/useRoleRedirect";
 
-// Import enhanced dashboard components
-import EnhancedTenantDashboard from "@/components/dashboard/enhanced/EnhancedTenantDashboard";
-import EnhancedLandlordDashboard from "@/components/dashboard/enhanced/EnhancedLandlordDashboard";
-import EnhancedAgentDashboard from "@/components/dashboard/enhanced/EnhancedAgentDashboard";
-import AdminDashboard from "@/components/dashboard/AdminDashboard";
+// Import dashboard overview components
+import LandlordDashboard from "@/components/dashboard/overview/LandlordDashboard";
+import TenantDashboard from "@/components/dashboard/overview/TenantDashboard";
+import CaretakerDashboard from "@/components/dashboard/overview/CaretakerDashboard";
+import AgentDashboard from "@/components/dashboard/overview/AgentDashboard";
+import AdminDashboard from "@/components/dashboard/overview/AdminDashboard";
+
+// Import caretaker-specific pages
+import CaretakerPayments from "@/components/dashboard/caretaker/CaretakerPayments";
+import CaretakerReceipts from "@/components/dashboard/caretaker/CaretakerReceipts";
+import CaretakerWater from "@/components/dashboard/caretaker/CaretakerWater";
+import CaretakerWaste from "@/components/dashboard/caretaker/CaretakerWaste";
+import CaretakerNotices from "@/components/dashboard/caretaker/CaretakerNotices";
 
 const Dashboard = () => {
   const { userProfile, loading } = useAuth();
   useRoleRedirect();
 
-  if (loading) {
+  if (loading || !userProfile) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-emerald-600"></div>
-      </div>
-    );
-  }
-
-  if (!userProfile) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Loading Profile...</h2>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
-  const renderDashboardByRole = () => {
-    switch (userProfile.role) {
+  const getDashboardComponent = (role: string) => {
+    switch (role) {
       case "tenant":
-        return <EnhancedTenantDashboard />;
+        return <TenantDashboard />;
       case "landlord":
-        return <EnhancedLandlordDashboard />;
+        return <LandlordDashboard />;
+      case "caretaker":
+        return <CaretakerDashboard />;
       case "agent":
-        return <EnhancedAgentDashboard />;
       case "real_estate_company":
-        return <EnhancedAgentDashboard />; // Reuse agent dashboard for now
-      case "service_provider":
-        return <EnhancedAgentDashboard />; // Placeholder - customize later
-      case "developer":
-        return <EnhancedAgentDashboard />; // Placeholder - customize later
-      case "investor":
-        return <EnhancedAgentDashboard />; // Placeholder - customize later
-      case "short_term_host":
-        return <EnhancedAgentDashboard />; // Placeholder - customize later
+        return <AgentDashboard />;
       case "admin":
       case "super_admin":
         return <AdminDashboard />;
       default:
-        return <EnhancedTenantDashboard />;
+        return <TenantDashboard />;
     }
   };
 
-  return renderDashboardByRole();
+  return (
+    <Routes>
+      {/* Role-specific dashboard overview routes */}
+      <Route path="/" element={getDashboardComponent(userProfile.role)} />
+      <Route path={`/${userProfile.role}`} element={getDashboardComponent(userProfile.role)} />
+      
+      {/* Caretaker-specific routes */}
+      <Route path="/caretaker/payments" element={<CaretakerPayments />} />
+      <Route path="/caretaker/receipts" element={<CaretakerReceipts />} />
+      <Route path="/caretaker/water" element={<CaretakerWater />} />
+      <Route path="/caretaker/waste" element={<CaretakerWaste />} />
+      <Route path="/caretaker/notices" element={<CaretakerNotices />} />
+      
+      {/* Fallback to role-specific dashboard */}
+      <Route path="*" element={getDashboardComponent(userProfile.role)} />
+    </Routes>
+  );
 };
 
 export default Dashboard;

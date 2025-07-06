@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
   Home, 
@@ -23,12 +23,17 @@ import {
   FileCheck,
   DollarSign,
   PieChart,
-  Activity
+  Activity,
+  Receipt,
+  Droplets,
+  Trash2,
+  Bell,
+  CreditCard,
+  ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown } from 'lucide-react';
 
 interface NavigationItem {
   title: string;
@@ -50,37 +55,40 @@ interface SidebarProps {
 }
 
 const getNavigationByRole = (role: string): NavigationSection[] => {
-  const baseItems = [
-    { title: 'Dashboard', href: '/dashboard', icon: Home }
-  ];
+  const dashboardItem = { title: 'Dashboard', href: `/dashboard/${role}`, icon: Home };
 
   switch (role) {
     case 'tenant':
       return [
-        { title: 'Main', items: baseItems, defaultOpen: true },
+        { title: 'Overview', items: [dashboardItem], defaultOpen: true },
         {
-          title: 'My Account',
+          title: 'Property Management',
           items: [
             { title: 'My Rentals', href: '/dashboard/rentals', icon: Building },
-            { title: 'Wallet', href: '/dashboard/wallet', icon: Wallet },
             { title: 'Leases', href: '/dashboard/leases', icon: FileText },
-            { title: 'Requests', href: '/dashboard/requests', icon: Wrench, badge: '2' },
-            { title: 'Messages', href: '/dashboard/messages', icon: MessageSquare, badge: '3' }
+            { title: 'Requests', href: '/dashboard/requests', icon: Wrench, badge: '2' }
           ],
           defaultOpen: true
         },
         {
-          title: 'Analytics',
+          title: 'Financial',
           items: [
-            { title: 'Insights', href: '/dashboard/insights', icon: BarChart3 },
-            { title: 'Settings', href: '/dashboard/settings', icon: Settings }
+            { title: 'Wallet', href: '/dashboard/wallet', icon: Wallet },
+            { title: 'Receipts', href: '/dashboard/receipts', icon: Receipt }
+          ]
+        },
+        {
+          title: 'Communication',
+          items: [
+            { title: 'Messages', href: '/dashboard/messages', icon: MessageSquare, badge: '3' },
+            { title: 'Notices', href: '/dashboard/notices', icon: Bell }
           ]
         }
       ];
 
     case 'landlord':
       return [
-        { title: 'Main', items: baseItems, defaultOpen: true },
+        { title: 'Overview', items: [dashboardItem], defaultOpen: true },
         {
           title: 'Property Management',
           items: [
@@ -95,25 +103,59 @@ const getNavigationByRole = (role: string): NavigationSection[] => {
           title: 'Financial',
           items: [
             { title: 'Transactions', href: '/dashboard/transactions', icon: Wallet },
-            { title: 'Insurance', href: '/dashboard/insurance', icon: Shield },
-            { title: 'Reports', href: '/dashboard/reports', icon: BarChart3 }
+            { title: 'Receipts', href: '/dashboard/receipts', icon: Receipt },
+            { title: 'Insurance', href: '/dashboard/insurance', icon: Shield }
           ]
         },
         {
           title: 'Communication',
           items: [
             { title: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
-            { title: 'Agents', href: '/dashboard/agents', icon: UserCheck },
+            { title: 'Notices', href: '/dashboard/notices', icon: Bell },
             { title: 'Documents', href: '/dashboard/documents', icon: ClipboardList }
+          ]
+        }
+      ];
+
+    case 'caretaker':
+      return [
+        { title: 'Overview', items: [dashboardItem], defaultOpen: true },
+        {
+          title: 'Property Management',
+          items: [
+            { title: 'Assigned Properties', href: '/dashboard/properties', icon: Building },
+            { title: 'Maintenance', href: '/dashboard/requests', icon: Wrench, badge: '3' }
+          ],
+          defaultOpen: true
+        },
+        {
+          title: 'Financial',
+          items: [
+            { title: 'Payments', href: '/dashboard/caretaker/payments', icon: CreditCard },
+            { title: 'Receipts', href: '/dashboard/caretaker/receipts', icon: Receipt }
+          ]
+        },
+        {
+          title: 'Services',
+          items: [
+            { title: 'Water Management', href: '/dashboard/caretaker/water', icon: Droplets },
+            { title: 'Waste Management', href: '/dashboard/caretaker/waste', icon: Trash2 }
+          ]
+        },
+        {
+          title: 'Communication',
+          items: [
+            { title: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
+            { title: 'Notices', href: '/dashboard/caretaker/notices', icon: Bell }
           ]
         }
       ];
 
     case 'agent':
       return [
-        { title: 'Main', items: baseItems, defaultOpen: true },
+        { title: 'Overview', items: [dashboardItem], defaultOpen: true },
         {
-          title: 'Portfolio',
+          title: 'Property Management',
           items: [
             { title: 'Properties', href: '/dashboard/properties', icon: Building },
             { title: 'Viewings', href: '/dashboard/viewings', icon: Calendar },
@@ -122,78 +164,17 @@ const getNavigationByRole = (role: string): NavigationSection[] => {
           defaultOpen: true
         },
         {
-          title: 'Business',
+          title: 'Financial',
           items: [
             { title: 'Commissions', href: '/dashboard/commissions', icon: DollarSign },
-            { title: 'Insights', href: '/dashboard/insights', icon: TrendingUp },
+            { title: 'Transactions', href: '/dashboard/transactions', icon: Wallet }
+          ]
+        },
+        {
+          title: 'Communication',
+          items: [
             { title: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
             { title: 'Documents', href: '/dashboard/documents', icon: FileCheck }
-          ]
-        }
-      ];
-
-    case 'real_estate_company':
-      return [
-        { title: 'Main', items: baseItems, defaultOpen: true },
-        {
-          title: 'Management',
-          items: [
-            { title: 'Agents', href: '/dashboard/agents', icon: Users },
-            { title: 'Properties', href: '/dashboard/properties', icon: Building },
-            { title: 'Leases', href: '/dashboard/leases', icon: FileText }
-          ],
-          defaultOpen: true
-        },
-        {
-          title: 'Analytics',
-          items: [
-            { title: 'Insights', href: '/dashboard/insights', icon: BarChart3 },
-            { title: 'Transactions', href: '/dashboard/transactions', icon: Wallet },
-            { title: 'Compliance', href: '/dashboard/compliance', icon: Shield }
-          ]
-        }
-      ];
-
-    case 'service_provider':
-      return [
-        { title: 'Main', items: baseItems, defaultOpen: true },
-        {
-          title: 'Services',
-          items: [
-            { title: 'Orders', href: '/dashboard/orders', icon: ClipboardList, badge: '3' },
-            { title: 'Schedule', href: '/dashboard/schedule', icon: Calendar },
-            { title: 'Earnings', href: '/dashboard/earnings', icon: DollarSign }
-          ],
-          defaultOpen: true
-        },
-        {
-          title: 'Profile',
-          items: [
-            { title: 'Reviews', href: '/dashboard/reviews', icon: Star },
-            { title: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
-            { title: 'Documents', href: '/dashboard/documents', icon: FileCheck }
-          ]
-        }
-      ];
-
-    case 'developer':
-    case 'investor':
-      return [
-        { title: 'Main', items: baseItems, defaultOpen: true },
-        {
-          title: 'Investments',
-          items: [
-            { title: 'Proposals', href: '/dashboard/proposals', icon: FileText },
-            { title: 'Performance', href: '/dashboard/performance', icon: TrendingUp },
-            { title: 'Locations', href: '/dashboard/locations', icon: MapPin }
-          ],
-          defaultOpen: true
-        },
-        {
-          title: 'Network',
-          items: [
-            { title: 'Partners', href: '/dashboard/partners', icon: Handshake },
-            { title: 'Documents', href: '/dashboard/documents', icon: ClipboardList }
           ]
         }
       ];
@@ -201,18 +182,18 @@ const getNavigationByRole = (role: string): NavigationSection[] => {
     case 'admin':
     case 'super_admin':
       return [
-        { title: 'Main', items: baseItems, defaultOpen: true },
+        { title: 'Overview', items: [dashboardItem], defaultOpen: true },
         {
           title: 'User Management',
           items: [
             { title: 'Users', href: '/dashboard/users', icon: Users },
             { title: 'Properties', href: '/dashboard/properties', icon: Building },
-            { title: 'KYC/Verification', href: '/dashboard/kyc', icon: Shield }
+            { title: 'Verification', href: '/dashboard/kyc', icon: Shield }
           ],
           defaultOpen: true
         },
         {
-          title: 'Platform Analytics',
+          title: 'Financial',
           items: [
             { title: 'Analytics', href: '/dashboard/analytics', icon: Activity },
             { title: 'Finance', href: '/dashboard/finance', icon: Wallet },
@@ -220,21 +201,36 @@ const getNavigationByRole = (role: string): NavigationSection[] => {
           ]
         },
         {
-          title: 'System',
+          title: 'Communication',
           items: [
-            { title: 'Configuration', href: '/dashboard/config', icon: Settings }
+            { title: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
+            { title: 'System Config', href: '/dashboard/config', icon: Settings }
           ]
         }
       ];
 
     default:
-      return [{ title: 'Main', items: baseItems, defaultOpen: true }];
+      return [{ title: 'Overview', items: [dashboardItem], defaultOpen: true }];
   }
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed }) => {
   const location = useLocation();
   const navigation = getNavigationByRole(role);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    navigation.forEach(section => {
+      initial[section.title] = section.defaultOpen || false;
+    });
+    return initial;
+  });
+
+  const toggleSection = (sectionTitle: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [sectionTitle]: !prev[sectionTitle]
+    }));
+  };
 
   return (
     <div className={cn(
@@ -252,12 +248,16 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed }) => {
 
       <nav className="px-2 space-y-1">
         {navigation.map((section) => (
-          <Collapsible key={section.title} defaultOpen={section.defaultOpen}>
+          <Collapsible 
+            key={section.title} 
+            open={openSections[section.title]}
+            onOpenChange={() => toggleSection(section.title)}
+          >
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
                 className={cn(
-                  'w-full justify-between text-sm font-medium text-gray-700 hover:text-gray-900',
+                  'w-full justify-between text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50',
                   isCollapsed && 'px-2'
                 )}
               >

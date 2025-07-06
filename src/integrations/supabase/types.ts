@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      caretaker_assignments: {
+        Row: {
+          assigned_at: string | null
+          caretaker_id: string | null
+          created_at: string | null
+          id: string
+          property_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          caretaker_id?: string | null
+          created_at?: string | null
+          id?: string
+          property_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          caretaker_id?: string | null
+          created_at?: string | null
+          id?: string
+          property_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "caretaker_assignments_caretaker_id_fkey"
+            columns: ["caretaker_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           created_at: string | null
