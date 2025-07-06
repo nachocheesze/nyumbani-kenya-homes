@@ -92,27 +92,27 @@ const getNavigationByRole = (role: string): NavigationSection[] => {
         {
           title: 'Property Management',
           items: [
-            { title: 'Properties', href: '/dashboard/properties', icon: Building },
-            { title: 'Tenants', href: '/dashboard/tenants', icon: Users },
-            { title: 'Leases', href: '/dashboard/leases', icon: FileText },
-            { title: 'Requests', href: '/dashboard/requests', icon: Wrench, badge: '5' }
+            { title: 'Properties', href: '/dashboard/landlord/properties', icon: Building },
+            { title: 'Tenants', href: '/dashboard/landlord/tenants', icon: Users },
+            { title: 'Leases', href: '/dashboard/landlord/leases', icon: FileText },
+            { title: 'Requests', href: '/dashboard/landlord/requests', icon: Wrench, badge: '5' }
           ],
           defaultOpen: true
         },
         {
           title: 'Financial',
           items: [
-            { title: 'Transactions', href: '/dashboard/transactions', icon: Wallet },
-            { title: 'Receipts', href: '/dashboard/receipts', icon: Receipt },
-            { title: 'Insurance', href: '/dashboard/insurance', icon: Shield }
+            { title: 'Transactions', href: '/dashboard/landlord/transactions', icon: Wallet },
+            { title: 'Insurance', href: '/dashboard/landlord/insurance', icon: Shield },
+            { title: 'Reports', href: '/dashboard/landlord/reports', icon: BarChart3 }
           ]
         },
         {
           title: 'Communication',
           items: [
-            { title: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
-            { title: 'Notices', href: '/dashboard/notices', icon: Bell },
-            { title: 'Documents', href: '/dashboard/documents', icon: ClipboardList }
+            { title: 'Messages', href: '/dashboard/landlord/messages', icon: MessageSquare },
+            { title: 'Agents', href: '/dashboard/landlord/agents', icon: Handshake },
+            { title: 'Documents', href: '/dashboard/landlord/documents', icon: ClipboardList }
           ]
         }
       ];
