@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
@@ -29,11 +28,14 @@ import {
   Trash2,
   Bell,
   CreditCard,
-  ChevronDown
+  ChevronDown,
+  LogOut,
+  User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface NavigationItem {
   title: string;
@@ -302,8 +304,9 @@ const getNavigationByRole = (role: string): NavigationSection[] => {
   }
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed }) => {
+const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed, onToggle }) => {
   const location = useLocation();
+  const { signOut, userProfile } = useAuth();
   const navigation = getNavigationByRole(role);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
@@ -320,12 +323,17 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed }) => {
     }));
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
     <div className={cn(
-      'bg-white border-r border-gray-200 transition-all duration-300',
+      'bg-white border-r border-gray-200 transition-all duration-300 flex flex-col',
       isCollapsed ? 'w-16' : 'w-64'
     )}>
-      <div className="p-4">
+      {/* Header */}
+      <div className="p-4 border-b">
         <div className="flex items-center space-x-2">
           <Home className="h-8 w-8 text-emerald-600" />
           {!isCollapsed && (
@@ -334,7 +342,8 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed }) => {
         </div>
       </div>
 
-      <nav className="px-2 space-y-1">
+      {/* Navigation */}
+      <nav className="px-2 space-y-1 flex-1 py-4">
         {navigation.map((section) => (
           <Collapsible 
             key={section.title} 
@@ -386,6 +395,40 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed }) => {
           </Collapsible>
         ))}
       </nav>
+
+      {/* User Section */}
+      <div className="border-t p-4">
+        {!isCollapsed && userProfile && (
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <div className="h-8 w-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                <User className="h-4 w-4 text-emerald-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {userProfile.full_name}
+                </p>
+                <p className="text-xs text-gray-500 capitalize">
+                  {userProfile.role.replace('_', ' ')}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <Button
+          onClick={handleSignOut}
+          variant="outline"
+          size="sm"
+          className={cn(
+            'w-full flex items-center justify-center space-x-2',
+            isCollapsed && 'px-2'
+          )}
+        >
+          <LogOut className="h-4 w-4" />
+          {!isCollapsed && <span>Sign Out</span>}
+        </Button>
+      </div>
     </div>
   );
 };
