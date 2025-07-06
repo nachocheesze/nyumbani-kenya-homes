@@ -14,6 +14,7 @@ CREATE TABLE public.users (
       'developer',
       'investor',
       'short_term_host',
+      'caretaker',
       'admin',
       'super_admin'
     )

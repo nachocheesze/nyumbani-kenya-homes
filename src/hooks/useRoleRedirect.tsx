@@ -18,6 +18,7 @@ export const useRoleRedirect = () => {
         developer: '/dashboard',
         investor: '/dashboard',
         short_term_host: '/dashboard',
+        caretaker: '/dashboard',
         admin: '/dashboard',
         super_admin: '/dashboard'
       };
