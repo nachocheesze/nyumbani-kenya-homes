@@ -97,7 +97,7 @@ const AdminDashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip formatter={(value) => [`KES ${(value / 1000).toFixed(0)}K`, 'Revenue']} />
+                <Tooltip formatter={(value: number) => [`KES ${(value / 1000).toFixed(0)}K`, 'Revenue']} />
                 <Bar dataKey="revenue" fill="#10b981" />
               </BarChart>
             </ResponsiveContainer>
