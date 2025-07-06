@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,8 +14,14 @@ const Auth = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signUp, signIn, user } = useAuth();
-  const isSignup = location.pathname === '/signup';
   
+  // Determine the active tab based on the current path
+  const getActiveTab = () => {
+    if (location.pathname === '/signup') return 'signup';
+    return 'login';
+  };
+  
+  const [activeTab, setActiveTab] = useState(getActiveTab());
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,12 +33,23 @@ const Auth = () => {
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   
+  // Update active tab when location changes
+  useEffect(() => {
+    setActiveTab(getActiveTab());
+  }, [location.pathname]);
+  
   // Redirect authenticated users
   useEffect(() => {
     if (user) {
       navigate('/dashboard');
     }
   }, [user, navigate]);
+  
+  // Handle tab changes and update URL
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    navigate(value === 'signup' ? '/signup' : '/login', { replace: true });
+  };
   
   const userRoles = [
     { 
@@ -155,10 +171,10 @@ const Auth = () => {
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {isSignup ? 'Join Nyumbani' : 'Welcome Back'}
+              {activeTab === 'signup' ? 'Join Nyumbani' : 'Welcome Back'}
             </h1>
             <p className="text-gray-600">
-              {isSignup 
+              {activeTab === 'signup'
                 ? 'Create your account and start your real estate journey' 
                 : 'Sign in to access your dashboard and properties'
               }
@@ -167,14 +183,10 @@ const Auth = () => {
 
           <Card className="shadow-lg">
             <CardContent className="p-8">
-              <Tabs defaultValue={isSignup ? "signup" : "login"} className="w-full">
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-8">
-                  <TabsTrigger value="login" asChild>
-                    <Link to="/login" className="w-full">Login</Link>
-                  </TabsTrigger>
-                  <TabsTrigger value="signup" asChild>
-                    <Link to="/signup" className="w-full">Sign Up</Link>
-                  </TabsTrigger>
+                  <TabsTrigger value="login">Login</TabsTrigger>
+                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="login">
@@ -390,19 +402,25 @@ const Auth = () => {
           </Card>
 
           <div className="text-center mt-6 text-sm text-gray-600">
-            {isSignup ? (
+            {activeTab === 'signup' ? (
               <p>
                 Already have an account?{" "}
-                <Link to="/login" className="text-emerald-600 hover:text-emerald-700 font-medium">
+                <button 
+                  onClick={() => handleTabChange('login')}
+                  className="text-emerald-600 hover:text-emerald-700 font-medium"
+                >
                   Sign in here
-                </Link>
+                </button>
               </p>
             ) : (
               <p>
                 Don't have an account?{" "}
-                <Link to="/signup" className="text-emerald-600 hover:text-emerald-700 font-medium">
+                <button 
+                  onClick={() => handleTabChange('signup')}
+                  className="text-emerald-600 hover:text-emerald-700 font-medium"
+                >
                   Sign up here
-                </Link>
+                </button>
               </p>
             )}
           </div>
