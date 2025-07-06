@@ -9,6 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agent_properties: {
+        Row: {
+          agent_id: string
+          assigned_at: string | null
+          commission_rate: number | null
+          created_at: string | null
+          id: string
+          property_id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id: string
+          assigned_at?: string | null
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          property_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string
+          assigned_at?: string | null
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          property_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_properties_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_properties_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       caretaker_assignments: {
         Row: {
           assigned_at: string | null
@@ -40,6 +88,126 @@ export type Database = {
             columns: ["caretaker_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      developer_projects: {
+        Row: {
+          actual_completion: string | null
+          budget: number | null
+          created_at: string | null
+          description: string | null
+          developer_id: string
+          expected_completion: string | null
+          id: string
+          location: string
+          name: string
+          project_type: string | null
+          start_date: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_completion?: string | null
+          budget?: number | null
+          created_at?: string | null
+          description?: string | null
+          developer_id: string
+          expected_completion?: string | null
+          id?: string
+          location: string
+          name: string
+          project_type?: string | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_completion?: string | null
+          budget?: number | null
+          created_at?: string | null
+          description?: string | null
+          developer_id?: string
+          expected_completion?: string | null
+          id?: string
+          location?: string
+          name?: string
+          project_type?: string | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "developer_projects_developer_id_fkey"
+            columns: ["developer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investor_projects: {
+        Row: {
+          created_at: string | null
+          expected_return_rate: number | null
+          id: string
+          investment_amount: number
+          investment_date: string | null
+          investor_id: string
+          ownership_percentage: number | null
+          project_id: string | null
+          property_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expected_return_rate?: number | null
+          id?: string
+          investment_amount: number
+          investment_date?: string | null
+          investor_id: string
+          ownership_percentage?: number | null
+          project_id?: string | null
+          property_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expected_return_rate?: number | null
+          id?: string
+          investment_amount?: number
+          investment_date?: string | null
+          investor_id?: string
+          ownership_percentage?: number | null
+          project_id?: string | null
+          property_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_projects_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_projects_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "developer_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_projects_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -250,6 +418,54 @@ export type Database = {
           },
         ]
       }
+      real_estate_company_agents: {
+        Row: {
+          agent_id: string
+          commission_split: number | null
+          company_id: string
+          created_at: string | null
+          hire_date: string | null
+          id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id: string
+          commission_split?: number | null
+          company_id: string
+          created_at?: string | null
+          hire_date?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string
+          commission_split?: number | null
+          company_id?: string
+          created_at?: string | null
+          hire_date?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "real_estate_company_agents_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "real_estate_company_agents_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rent_payments: {
         Row: {
           amount: number
@@ -313,6 +529,151 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_provider_orders: {
+        Row: {
+          client_id: string
+          completion_date: string | null
+          cost: number | null
+          created_at: string | null
+          description: string
+          id: string
+          notes: string | null
+          priority: string | null
+          property_id: string | null
+          scheduled_date: string | null
+          service_provider_id: string
+          service_type: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          completion_date?: string | null
+          cost?: number | null
+          created_at?: string | null
+          description: string
+          id?: string
+          notes?: string | null
+          priority?: string | null
+          property_id?: string | null
+          scheduled_date?: string | null
+          service_provider_id: string
+          service_type: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          completion_date?: string | null
+          cost?: number | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          notes?: string | null
+          priority?: string | null
+          property_id?: string | null
+          scheduled_date?: string | null
+          service_provider_id?: string
+          service_type?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_provider_orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_provider_orders_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_provider_orders_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      short_term_bookings: {
+        Row: {
+          booking_fee: number | null
+          check_in_date: string
+          check_out_date: string
+          cleaning_fee: number | null
+          created_at: string | null
+          guest_email: string
+          guest_name: string
+          guest_phone: string | null
+          host_id: string
+          id: string
+          payment_status: string | null
+          property_id: string
+          special_requests: string | null
+          status: string | null
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          booking_fee?: number | null
+          check_in_date: string
+          check_out_date: string
+          cleaning_fee?: number | null
+          created_at?: string | null
+          guest_email: string
+          guest_name: string
+          guest_phone?: string | null
+          host_id: string
+          id?: string
+          payment_status?: string | null
+          property_id: string
+          special_requests?: string | null
+          status?: string | null
+          total_amount: number
+          updated_at?: string | null
+        }
+        Update: {
+          booking_fee?: number | null
+          check_in_date?: string
+          check_out_date?: string
+          cleaning_fee?: number | null
+          created_at?: string | null
+          guest_email?: string
+          guest_name?: string
+          guest_phone?: string | null
+          host_id?: string
+          id?: string
+          payment_status?: string | null
+          property_id?: string
+          special_requests?: string | null
+          status?: string | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "short_term_bookings_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "short_term_bookings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
