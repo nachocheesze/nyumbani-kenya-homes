@@ -43,7 +43,7 @@ const CaretakerTenants = () => {
         .from('tenants')
         .select(`
           *,
-          user:users(full_name, phone_number),
+          tenant_user:users!user_id(full_name, phone_number),
           property:properties(title, address)
         `)
         .in('property_id', propertyIds);
@@ -131,13 +131,13 @@ const CaretakerTenants = () => {
                       <Users className="h-5 w-5 text-emerald-600" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900">{tenant.user?.full_name || 'Unknown Tenant'}</h3>
+                      <h3 className="font-medium text-gray-900">{tenant.tenant_user?.full_name || 'Unknown Tenant'}</h3>
                       <p className="text-sm text-gray-500">{tenant.property?.title || 'Unknown Property'}</p>
                       <p className="text-xs text-gray-400">{tenant.property?.address}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {tenant.user?.phone_number && (
+                    {tenant.tenant_user?.phone_number && (
                       <Button variant="outline" size="sm">
                         <Phone className="h-4 w-4" />
                       </Button>
