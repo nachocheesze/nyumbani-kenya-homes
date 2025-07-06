@@ -64,24 +64,22 @@ const getNavigationByRole = (role: string): NavigationSection[] => {
         {
           title: 'Property Management',
           items: [
-            { title: 'My Rentals', href: '/dashboard/rentals', icon: Building },
-            { title: 'Leases', href: '/dashboard/leases', icon: FileText },
-            { title: 'Requests', href: '/dashboard/requests', icon: Wrench, badge: '2' }
+            { title: 'Rent', href: '/dashboard/tenant/rent', icon: CreditCard },
+            { title: 'Lease', href: '/dashboard/tenant/lease', icon: FileText },
+            { title: 'Maintenance', href: '/dashboard/tenant/maintenance', icon: Wrench, badge: '2' }
           ],
           defaultOpen: true
         },
         {
           title: 'Financial',
           items: [
-            { title: 'Wallet', href: '/dashboard/wallet', icon: Wallet },
-            { title: 'Receipts', href: '/dashboard/receipts', icon: Receipt }
+            { title: 'Wallet', href: '/dashboard/tenant/wallet', icon: Wallet }
           ]
         },
         {
           title: 'Communication',
           items: [
-            { title: 'Messages', href: '/dashboard/messages', icon: MessageSquare, badge: '3' },
-            { title: 'Notices', href: '/dashboard/notices', icon: Bell }
+            { title: 'Messages', href: '/dashboard/tenant/messages', icon: MessageSquare, badge: '3' }
           ]
         }
       ];
@@ -117,14 +115,39 @@ const getNavigationByRole = (role: string): NavigationSection[] => {
         }
       ];
 
+    case 'agent':
+      return [
+        { title: 'Overview', items: [dashboardItem], defaultOpen: true },
+        {
+          title: 'Business',
+          items: [
+            { title: 'Listings', href: '/dashboard/agent/listings', icon: Building },
+            { title: 'Viewings', href: '/dashboard/agent/viewings', icon: Calendar },
+            { title: 'Clients', href: '/dashboard/agent/clients', icon: Users }
+          ],
+          defaultOpen: true
+        },
+        {
+          title: 'Financial',
+          items: [
+            { title: 'Earnings', href: '/dashboard/agent/earnings', icon: DollarSign }
+          ]
+        },
+        {
+          title: 'Communication',
+          items: [
+            { title: 'Messages', href: '/dashboard/agent/messages', icon: MessageSquare }
+          ]
+        }
+      ];
+
     case 'caretaker':
       return [
         { title: 'Overview', items: [dashboardItem], defaultOpen: true },
         {
           title: 'Property Management',
           items: [
-            { title: 'Assigned Properties', href: '/dashboard/properties', icon: Building },
-            { title: 'Maintenance', href: '/dashboard/requests', icon: Wrench, badge: '3' }
+            { title: 'Tenants', href: '/dashboard/caretaker/tenants', icon: Users }
           ],
           defaultOpen: true
         },
@@ -145,37 +168,110 @@ const getNavigationByRole = (role: string): NavigationSection[] => {
         {
           title: 'Communication',
           items: [
-            { title: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
             { title: 'Notices', href: '/dashboard/caretaker/notices', icon: Bell }
           ]
         }
       ];
 
-    case 'agent':
+    case 'real_estate_company':
       return [
         { title: 'Overview', items: [dashboardItem], defaultOpen: true },
         {
-          title: 'Property Management',
+          title: 'Business Management',
           items: [
-            { title: 'Properties', href: '/dashboard/properties', icon: Building },
-            { title: 'Viewings', href: '/dashboard/viewings', icon: Calendar },
-            { title: 'Clients', href: '/dashboard/clients', icon: Users }
+            { title: 'Agents', href: '/dashboard/real_estate_company/agents', icon: Users },
+            { title: 'Properties', href: '/dashboard/real_estate_company/properties', icon: Building },
+            { title: 'Reports', href: '/dashboard/real_estate_company/reports', icon: BarChart3 },
+            { title: 'Compliance', href: '/dashboard/real_estate_company/compliance', icon: Shield }
+          ],
+          defaultOpen: true
+        }
+      ];
+
+    case 'service_provider':
+      return [
+        { title: 'Overview', items: [dashboardItem], defaultOpen: true },
+        {
+          title: 'Business',
+          items: [
+            { title: 'Orders', href: '/dashboard/service_provider/orders', icon: ClipboardList },
+            { title: 'Schedule', href: '/dashboard/service_provider/schedule', icon: Calendar }
           ],
           defaultOpen: true
         },
         {
           title: 'Financial',
           items: [
-            { title: 'Commissions', href: '/dashboard/commissions', icon: DollarSign },
-            { title: 'Transactions', href: '/dashboard/transactions', icon: Wallet }
+            { title: 'Earnings', href: '/dashboard/service_provider/earnings', icon: DollarSign }
           ]
         },
         {
-          title: 'Communication',
+          title: 'Quality',
           items: [
-            { title: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
-            { title: 'Documents', href: '/dashboard/documents', icon: FileCheck }
+            { title: 'Reviews', href: '/dashboard/service_provider/reviews', icon: Star },
+            { title: 'Messages', href: '/dashboard/service_provider/messages', icon: MessageSquare }
           ]
+        }
+      ];
+
+    case 'short_term_host':
+      return [
+        { title: 'Overview', items: [dashboardItem], defaultOpen: true },
+        {
+          title: 'Property Management',
+          items: [
+            { title: 'Listings', href: '/dashboard/short_term_host/listings', icon: Building },
+            { title: 'Bookings', href: '/dashboard/short_term_host/bookings', icon: Calendar },
+            { title: 'Calendar', href: '/dashboard/short_term_host/calendar', icon: Calendar }
+          ],
+          defaultOpen: true
+        },
+        {
+          title: 'Guest Management',
+          items: [
+            { title: 'Guests', href: '/dashboard/short_term_host/guests', icon: Users }
+          ]
+        },
+        {
+          title: 'Financial',
+          items: [
+            { title: 'Earnings', href: '/dashboard/short_term_host/earnings', icon: DollarSign }
+          ]
+        }
+      ];
+
+    case 'developer':
+      return [
+        { title: 'Overview', items: [dashboardItem], defaultOpen: true },
+        {
+          title: 'Development',
+          items: [
+            { title: 'Projects', href: '/dashboard/developer/projects', icon: Building },
+            { title: 'Leads', href: '/dashboard/developer/leads', icon: Users },
+            { title: 'Proposals', href: '/dashboard/developer/proposals', icon: FileText }
+          ],
+          defaultOpen: true
+        },
+        {
+          title: 'Financial',
+          items: [
+            { title: 'ROI Analysis', href: '/dashboard/developer/roi', icon: TrendingUp }
+          ]
+        }
+      ];
+
+    case 'investor':
+      return [
+        { title: 'Overview', items: [dashboardItem], defaultOpen: true },
+        {
+          title: 'Investment Management',
+          items: [
+            { title: 'Investments', href: '/dashboard/investor/investments', icon: DollarSign },
+            { title: 'Documents', href: '/dashboard/investor/documents', icon: FileText },
+            { title: 'Reports', href: '/dashboard/investor/reports', icon: BarChart3 },
+            { title: 'Partners', href: '/dashboard/investor/partners', icon: Handshake }
+          ],
+          defaultOpen: true
         }
       ];
 
@@ -184,27 +280,19 @@ const getNavigationByRole = (role: string): NavigationSection[] => {
       return [
         { title: 'Overview', items: [dashboardItem], defaultOpen: true },
         {
-          title: 'User Management',
+          title: 'Platform Management',
           items: [
-            { title: 'Users', href: '/dashboard/users', icon: Users },
-            { title: 'Properties', href: '/dashboard/properties', icon: Building },
-            { title: 'Verification', href: '/dashboard/kyc', icon: Shield }
+            { title: 'Users', href: '/dashboard/admin/users', icon: Users },
+            { title: 'KYC Verification', href: '/dashboard/admin/kyc', icon: Shield },
+            { title: 'System Config', href: '/dashboard/admin/config', icon: Settings }
           ],
           defaultOpen: true
         },
         {
-          title: 'Financial',
+          title: 'Analytics & Finance',
           items: [
-            { title: 'Analytics', href: '/dashboard/analytics', icon: Activity },
-            { title: 'Finance', href: '/dashboard/finance', icon: Wallet },
-            { title: 'Reports', href: '/dashboard/reports', icon: BarChart3 }
-          ]
-        },
-        {
-          title: 'Communication',
-          items: [
-            { title: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
-            { title: 'System Config', href: '/dashboard/config', icon: Settings }
+            { title: 'Platform Finances', href: '/dashboard/admin/finances', icon: DollarSign },
+            { title: 'Analytics', href: '/dashboard/admin/analytics', icon: Activity }
           ]
         }
       ];

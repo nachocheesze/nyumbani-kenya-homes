@@ -37,15 +37,6 @@ const DashboardNavigation = ({ currentRole, onToggleSidebar }: DashboardNavigati
           </div>
         </div>
         
-        <div className="hidden md:flex space-x-6">
-          <Link to="/properties" className="text-gray-600 hover:text-emerald-600 transition-colors">
-            Browse Properties
-          </Link>
-          <Link to="/dashboard" className="text-emerald-600 font-medium">
-            Dashboard
-          </Link>
-        </div>
-        
         <div className="flex items-center space-x-4">
           <div className="hidden md:block">
             <span className="text-sm text-gray-600 capitalize">{currentRole.replace('_', ' ')}</span>
