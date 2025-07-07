@@ -41,18 +41,27 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ role, isOpen, onClose }) 
     onClose();
   };
 
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
     <>
       {/* Overlay */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-        onClick={onClose}
+        className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden transition-opacity duration-300"
+        onClick={handleOverlayClick}
       />
       
       {/* Sidebar */}
-      <div className="fixed left-0 top-0 h-full w-80 bg-white z-50 md:hidden transform transition-transform duration-300 ease-in-out flex flex-col">
+      <div className={cn(
+        "fixed left-0 top-0 h-full w-80 bg-white z-50 md:hidden flex flex-col transition-transform duration-300 ease-in-out",
+        isOpen ? "transform translate-x-0" : "transform -translate-x-full"
+      )}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center space-x-2">
@@ -63,6 +72,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ role, isOpen, onClose }) 
             variant="ghost"
             size="sm"
             onClick={onClose}
+            className="p-2"
           >
             <X className="h-5 w-5" />
           </Button>
