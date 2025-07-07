@@ -24,7 +24,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex w-full">
+    <div className="min-h-screen bg-gray-50">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <Sidebar 
@@ -34,6 +34,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         />
       </div>
 
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+
       {/* Mobile Sidebar */}
       <MobileSidebar
         role={userProfile.role}
@@ -41,21 +49,26 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         onClose={() => setMobileSidebarOpen(false)}
       />
       
-      <div className="flex-1 flex flex-col">
-        {/* Mobile header */}
-        <div className="md:hidden p-4 border-b bg-white flex items-center justify-between">
+      {/* Main Content Area with proper spacing for fixed sidebar */}
+      <div className={`min-h-screen transition-all duration-300 ${
+        sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
+      }`}>
+        {/* Mobile Header */}
+        <div className="md:hidden sticky top-0 z-30 p-4 border-b bg-white flex items-center justify-between shadow-sm">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setMobileSidebarOpen(true)}
+            className="p-2"
           >
-            <Menu className="h-4 w-4" />
+            <Menu className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-semibold text-gray-900">Nyumbani</h1>
-          <div className="w-8" /> {/* Spacer for centering */}
+          <div className="w-10" /> {/* Spacer for centering */}
         </div>
         
-        <main className="flex-1 p-6">
+        {/* Main Content */}
+        <main className="p-4 md:p-6">
           {children}
         </main>
       </div>

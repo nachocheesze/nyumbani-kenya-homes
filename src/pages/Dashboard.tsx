@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
 import { useRoleRedirect } from "@/hooks/useRoleRedirect";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 // Import dashboard overview components
 import LandlordDashboard from "@/components/dashboard/overview/LandlordDashboard";
@@ -133,97 +134,99 @@ const Dashboard = () => {
   };
 
   return (
-    <Routes>
-      {/* Role-specific dashboard overview routes */}
-      <Route path="/" element={getDashboardComponent(userProfile.role)} />
-      <Route path={`/${userProfile.role}`} element={getDashboardComponent(userProfile.role)} />
-      
-      {/* Property Management routes */}
-      <Route path="/property-management/*" element={<PropertyManagement />} />
-      
-      {/* Tenant-specific routes */}
-      <Route path="/tenant/rent" element={<TenantRent />} />
-      <Route path="/tenant/wallet" element={<TenantWallet />} />
-      <Route path="/tenant/lease" element={<TenantLease />} />
-      <Route path="/tenant/maintenance" element={<TenantMaintenance />} />
-      <Route path="/tenant/messages" element={<TenantMessages />} />
-      
-      {/* Landlord-specific routes */}
-      <Route path="/landlord/properties" element={<LandlordProperties />} />
-      <Route path="/landlord/tenants" element={<LandlordTenants />} />
-      <Route path="/landlord/leases" element={<LandlordLeases />} />
-      <Route path="/landlord/requests" element={<LandlordRequests />} />
-      <Route path="/landlord/transactions" element={<LandlordTransactions />} />
-      <Route path="/landlord/insurance" element={<LandlordInsurance />} />
-      <Route path="/landlord/reports" element={<LandlordReports />} />
-      <Route path="/landlord/messages" element={<LandlordMessages />} />
-      <Route path="/landlord/agents" element={<LandlordAgents />} />
-      <Route path="/landlord/documents" element={<LandlordDocuments />} />
-      
-      {/* Agent-specific routes */}
-      <Route path="/agent/listings" element={<AgentListings />} />
-      <Route path="/agent/viewings" element={<AgentViewings />} />
-      <Route path="/agent/clients" element={<AgentClients />} />
-      <Route path="/agent/earnings" element={<AgentEarnings />} />
-      <Route path="/agent/messages" element={<AgentMessages />} />
-      
-      {/* Caretaker-specific routes */}
-      <Route path="/caretaker/payments" element={<CaretakerPayments />} />
-      <Route path="/caretaker/receipts" element={<CaretakerReceipts />} />
-      <Route path="/caretaker/water" element={<CaretakerWater />} />
-      <Route path="/caretaker/waste" element={<CaretakerWaste />} />
-      <Route path="/caretaker/tenants" element={<CaretakerTenants />} />
-      <Route path="/caretaker/notices" element={<CaretakerNotices />} />
-      
-      {/* Real Estate Company routes */}
-      <Route path="/real_estate_company/agents" element={<RealEstateAgents />} />
-      <Route path="/real_estate_company/properties" element={<RealEstateProperties />} />
-      <Route path="/real_estate_company/reports" element={<RealEstateReports />} />
-      <Route path="/real_estate_company/compliance" element={<RealEstateCompliance />} />
-      
-      {/* Service Provider routes */}
-      <Route path="/service_provider/orders" element={<ServiceProviderOrders />} />
-      <Route path="/service_provider/schedule" element={<ServiceProviderSchedule />} />
-      <Route path="/service_provider/earnings" element={<ServiceProviderEarnings />} />
-      <Route path="/service_provider/reviews" element={<ServiceProviderReviews />} />
-      <Route path="/service_provider/messages" element={<ServiceProviderMessages />} />
-      
-      {/* Short-term Host routes */}
-      <Route path="/short_term_host/listings" element={<ShortTermListings />} />
-      <Route path="/short_term_host/bookings" element={<ShortTermBookings />} />
-      <Route path="/short_term_host/calendar" element={<ShortTermCalendar />} />
-      <Route path="/short_term_host/guests" element={<ShortTermGuests />} />
-      <Route path="/short_term_host/earnings" element={<ShortTermEarnings />} />
-      
-      {/* Developer routes */}
-      <Route path="/developer/projects" element={<DeveloperProjects />} />
-      <Route path="/developer/leads" element={<DeveloperLeads />} />
-      <Route path="/developer/proposals" element={<DeveloperProposals />} />
-      <Route path="/developer/roi" element={<DeveloperROI />} />
-      
-      {/* Investor routes */}
-      <Route path="/investor/investments" element={<InvestorInvestments />} />
-      <Route path="/investor/documents" element={<InvestorDocuments />} />
-      <Route path="/investor/reports" element={<InvestorReports />} />
-      <Route path="/investor/partners" element={<InvestorPartners />} />
-      
-      {/* Admin routes */}
-      <Route path="/admin/users" element={<AdminUsers />} />
-      <Route path="/admin/kyc" element={<AdminKYC />} />
-      <Route path="/admin/config" element={<AdminConfig />} />
-      <Route path="/admin/finances" element={<AdminFinances />} />
-      <Route path="/admin/analytics" element={<AdminAnalytics />} />
-      
-      {/* Super Admin routes (same as admin) */}
-      <Route path="/super_admin/users" element={<AdminUsers />} />
-      <Route path="/super_admin/kyc" element={<AdminKYC />} />
-      <Route path="/super_admin/config" element={<AdminConfig />} />
-      <Route path="/super_admin/finances" element={<AdminFinances />} />
-      <Route path="/super_admin/analytics" element={<AdminAnalytics />} />
-      
-      {/* Fallback to role-specific dashboard */}
-      <Route path="*" element={getDashboardComponent(userProfile.role)} />
-    </Routes>
+    <DashboardLayout>
+      <Routes>
+        {/* Role-specific dashboard overview routes */}
+        <Route path="/" element={getDashboardComponent(userProfile.role)} />
+        <Route path={`/${userProfile.role}`} element={getDashboardComponent(userProfile.role)} />
+        
+        {/* Property Management routes */}
+        <Route path="/property-management/*" element={<PropertyManagement />} />
+        
+        {/* Tenant-specific routes */}
+        <Route path="/tenant/rent" element={<TenantRent />} />
+        <Route path="/tenant/wallet" element={<TenantWallet />} />
+        <Route path="/tenant/lease" element={<TenantLease />} />
+        <Route path="/tenant/maintenance" element={<TenantMaintenance />} />
+        <Route path="/tenant/messages" element={<TenantMessages />} />
+        
+        {/* Landlord-specific routes */}
+        <Route path="/landlord/properties" element={<LandlordProperties />} />
+        <Route path="/landlord/tenants" element={<LandlordTenants />} />
+        <Route path="/landlord/leases" element={<LandlordLeases />} />
+        <Route path="/landlord/requests" element={<LandlordRequests />} />
+        <Route path="/landlord/transactions" element={<LandlordTransactions />} />
+        <Route path="/landlord/insurance" element={<LandlordInsurance />} />
+        <Route path="/landlord/reports" element={<LandlordReports />} />
+        <Route path="/landlord/messages" element={<LandlordMessages />} />
+        <Route path="/landlord/agents" element={<LandlordAgents />} />
+        <Route path="/landlord/documents" element={<LandlordDocuments />} />
+        
+        {/* Agent-specific routes */}
+        <Route path="/agent/listings" element={<AgentListings />} />
+        <Route path="/agent/viewings" element={<AgentViewings />} />
+        <Route path="/agent/clients" element={<AgentClients />} />
+        <Route path="/agent/earnings" element={<AgentEarnings />} />
+        <Route path="/agent/messages" element={<AgentMessages />} />
+        
+        {/* Caretaker-specific routes */}
+        <Route path="/caretaker/payments" element={<CaretakerPayments />} />
+        <Route path="/caretaker/receipts" element={<CaretakerReceipts />} />
+        <Route path="/caretaker/water" element={<CaretakerWater />} />
+        <Route path="/caretaker/waste" element={<CaretakerWaste />} />
+        <Route path="/caretaker/tenants" element={<CaretakerTenants />} />
+        <Route path="/caretaker/notices" element={<CaretakerNotices />} />
+        
+        {/* Real Estate Company routes */}
+        <Route path="/real_estate_company/agents" element={<RealEstateAgents />} />
+        <Route path="/real_estate_company/properties" element={<RealEstateProperties />} />
+        <Route path="/real_estate_company/reports" element={<RealEstateReports />} />
+        <Route path="/real_estate_company/compliance" element={<RealEstateCompliance />} />
+        
+        {/* Service Provider routes */}
+        <Route path="/service_provider/orders" element={<ServiceProviderOrders />} />
+        <Route path="/service_provider/schedule" element={<ServiceProviderSchedule />} />
+        <Route path="/service_provider/earnings" element={<ServiceProviderEarnings />} />
+        <Route path="/service_provider/reviews" element={<ServiceProviderReviews />} />
+        <Route path="/service_provider/messages" element={<ServiceProviderMessages />} />
+        
+        {/* Short-term Host routes */}
+        <Route path="/short_term_host/listings" element={<ShortTermListings />} />
+        <Route path="/short_term_host/bookings" element={<ShortTermBookings />} />
+        <Route path="/short_term_host/calendar" element={<ShortTermCalendar />} />
+        <Route path="/short_term_host/guests" element={<ShortTermGuests />} />
+        <Route path="/short_term_host/earnings" element={<ShortTermEarnings />} />
+        
+        {/* Developer routes */}
+        <Route path="/developer/projects" element={<DeveloperProjects />} />
+        <Route path="/developer/leads" element={<DeveloperLeads />} />
+        <Route path="/developer/proposals" element={<DeveloperProposals />} />
+        <Route path="/developer/roi" element={<DeveloperROI />} />
+        
+        {/* Investor routes */}
+        <Route path="/investor/investments" element={<InvestorInvestments />} />
+        <Route path="/investor/documents" element={<InvestorDocuments />} />
+        <Route path="/investor/reports" element={<InvestorReports />} />
+        <Route path="/investor/partners" element={<InvestorPartners />} />
+        
+        {/* Admin routes */}
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/kyc" element={<AdminKYC />} />
+        <Route path="/admin/config" element={<AdminConfig />} />
+        <Route path="/admin/finances" element={<AdminFinances />} />
+        <Route path="/admin/analytics" element={<AdminAnalytics />} />
+        
+        {/* Super Admin routes (same as admin) */}
+        <Route path="/super_admin/users" element={<AdminUsers />} />
+        <Route path="/super_admin/kyc" element={<AdminKYC />} />
+        <Route path="/super_admin/config" element={<AdminConfig />} />
+        <Route path="/super_admin/finances" element={<AdminFinances />} />
+        <Route path="/super_admin/analytics" element={<AdminAnalytics />} />
+        
+        {/* Fallback to role-specific dashboard */}
+        <Route path="*" element={getDashboardComponent(userProfile.role)} />
+      </Routes>
+    </DashboardLayout>
   );
 };
 
