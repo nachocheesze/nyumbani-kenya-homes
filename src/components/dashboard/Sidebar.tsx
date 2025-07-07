@@ -13,11 +13,15 @@ import {
   Calendar,
   Shield,
   Star,
+  MapPin,
   UserCheck,
   TrendingUp,
+  Eye,
   Handshake,
   ClipboardList,
+  FileCheck,
   DollarSign,
+  PieChart,
   Activity,
   Receipt,
   Droplets,
@@ -26,9 +30,7 @@ import {
   CreditCard,
   ChevronDown,
   LogOut,
-  User,
-  ChevronLeft,
-  ChevronRight
+  User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -315,12 +317,10 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed, onToggle }) => {
   });
 
   const toggleSection = (sectionTitle: string) => {
-    if (!isCollapsed) {
-      setOpenSections(prev => ({
-        ...prev,
-        [sectionTitle]: !prev[sectionTitle]
-      }));
-    }
+    setOpenSections(prev => ({
+      ...prev,
+      [sectionTitle]: !prev[sectionTitle]
+    }));
   };
 
   const handleSignOut = async () => {
@@ -329,53 +329,39 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed, onToggle }) => {
 
   return (
     <div className={cn(
-      'bg-white border-r border-gray-200 transition-all duration-300 flex flex-col fixed left-0 top-0 h-screen z-20',
+      'bg-white border-r border-gray-200 transition-all duration-300 flex flex-col',
       isCollapsed ? 'w-16' : 'w-64'
     )}>
-      {/* Header with Toggle */}
-      <div className="p-4 border-b flex items-center justify-between">
+      {/* Header */}
+      <div className="p-4 border-b">
         <div className="flex items-center space-x-2">
-          <Home className="h-8 w-8 text-emerald-600 flex-shrink-0" />
+          <Home className="h-8 w-8 text-emerald-600" />
           {!isCollapsed && (
-            <span className="text-xl font-bold text-gray-900 truncate">Nyumbani</span>
+            <span className="text-xl font-bold text-gray-900">Nyumbani</span>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onToggle}
-          className="p-1 h-8 w-8 flex-shrink-0"
-        >
-          {isCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </Button>
       </div>
 
       {/* Navigation */}
-      <nav className="px-2 space-y-1 flex-1 py-4 overflow-y-auto">
+      <nav className="px-2 space-y-1 flex-1 py-4">
         {navigation.map((section) => (
           <Collapsible 
             key={section.title} 
-            open={isCollapsed ? false : openSections[section.title]}
+            open={openSections[section.title]}
             onOpenChange={() => toggleSection(section.title)}
           >
-            {!isCollapsed && (
-              <CollapsibleTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-between text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 px-3 py-2"
-                >
-                  {section.title}
-                  <ChevronDown className={cn(
-                    "h-4 w-4 transition-transform",
-                    openSections[section.title] && "transform rotate-180"
-                  )} />
-                </Button>
-              </CollapsibleTrigger>
-            )}
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className={cn(
+                  'w-full justify-between text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50',
+                  isCollapsed && 'px-2'
+                )}
+              >
+                {!isCollapsed && section.title}
+                {!isCollapsed && <ChevronDown className="h-4 w-4" />}
+              </Button>
+            </CollapsibleTrigger>
             <CollapsibleContent className="space-y-1">
               {section.items.map((item) => {
                 const isActive = location.pathname === item.href;
@@ -384,29 +370,23 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed, onToggle }) => {
                     key={item.href}
                     to={item.href}
                     className={cn(
-                      'flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group relative',
+                      'flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group',
                       isActive
                         ? 'bg-emerald-100 text-emerald-900'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
                       isCollapsed && 'justify-center px-2'
                     )}
-                    title={isCollapsed ? item.title : undefined}
                   >
-                    <item.icon className={cn('h-5 w-5 flex-shrink-0', !isCollapsed && 'mr-3')} />
+                    <item.icon className={cn('h-5 w-5', !isCollapsed && 'mr-3')} />
                     {!isCollapsed && (
                       <>
-                        <span className="flex-1 truncate">{item.title}</span>
+                        <span className="flex-1">{item.title}</span>
                         {item.badge && (
-                          <span className="ml-auto bg-emerald-600 text-white text-xs rounded-full px-2 py-0.5 flex-shrink-0">
+                          <span className="ml-auto bg-emerald-600 text-white text-xs rounded-full px-2 py-0.5">
                             {item.badge}
                           </span>
                         )}
                       </>
-                    )}
-                    {isCollapsed && item.badge && (
-                      <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                        {item.badge}
-                      </span>
                     )}
                   </NavLink>
                 );
@@ -421,14 +401,14 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed, onToggle }) => {
         {!isCollapsed && userProfile && (
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="h-8 w-8 bg-emerald-100 rounded-full flex items-center justify-center">
                 <User className="h-4 w-4 text-emerald-600" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {userProfile.full_name}
                 </p>
-                <p className="text-xs text-gray-500 capitalize truncate">
+                <p className="text-xs text-gray-500 capitalize">
                   {userProfile.role.replace('_', ' ')}
                 </p>
               </div>
@@ -444,9 +424,8 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed, onToggle }) => {
             'w-full flex items-center justify-center space-x-2',
             isCollapsed && 'px-2'
           )}
-          title={isCollapsed ? 'Sign Out' : undefined}
         >
-          <LogOut className="h-4 w-4 flex-shrink-0" />
+          <LogOut className="h-4 w-4" />
           {!isCollapsed && <span>Sign Out</span>}
         </Button>
       </div>
