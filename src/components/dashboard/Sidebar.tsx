@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
@@ -29,6 +30,7 @@ import {
   Bell,
   CreditCard,
   ChevronDown,
+  ChevronRight,
   LogOut,
   User
 } from 'lucide-react';
@@ -317,10 +319,12 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed, onToggle }) => {
   });
 
   const toggleSection = (sectionTitle: string) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [sectionTitle]: !prev[sectionTitle]
-    }));
+    if (!isCollapsed) {
+      setOpenSections(prev => ({
+        ...prev,
+        [sectionTitle]: !prev[sectionTitle]
+      }));
+    }
   };
 
   const handleSignOut = async () => {
@@ -329,13 +333,13 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed, onToggle }) => {
 
   return (
     <div className={cn(
-      'bg-white border-r border-gray-200 transition-all duration-300 flex flex-col',
+      'fixed left-0 top-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 flex flex-col z-40',
       isCollapsed ? 'w-16' : 'w-64'
     )}>
       {/* Header */}
-      <div className="p-4 border-b">
+      <div className={cn('p-4 border-b', isCollapsed && 'px-2')}>
         <div className="flex items-center space-x-2">
-          <Home className="h-8 w-8 text-emerald-600" />
+          <Home className="h-8 w-8 text-emerald-600 flex-shrink-0" />
           {!isCollapsed && (
             <span className="text-xl font-bold text-gray-900">Nyumbani</span>
           )}
@@ -343,56 +347,83 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed, onToggle }) => {
       </div>
 
       {/* Navigation */}
-      <nav className="px-2 space-y-1 flex-1 py-4">
+      <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
         {navigation.map((section) => (
-          <Collapsible 
-            key={section.title} 
-            open={openSections[section.title]}
-            onOpenChange={() => toggleSection(section.title)}
-          >
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                className={cn(
-                  'w-full justify-between text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50',
-                  isCollapsed && 'px-2'
-                )}
+          <div key={section.title} className="space-y-1">
+            {!isCollapsed && (
+              <Collapsible 
+                open={openSections[section.title]}
+                onOpenChange={() => toggleSection(section.title)}
               >
-                {!isCollapsed && section.title}
-                {!isCollapsed && <ChevronDown className="h-4 w-4" />}
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-1">
-              {section.items.map((item) => {
-                const isActive = location.pathname === item.href;
-                return (
-                  <NavLink
-                    key={item.href}
-                    to={item.href}
-                    className={cn(
-                      'flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group',
-                      isActive
-                        ? 'bg-emerald-100 text-emerald-900'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                      isCollapsed && 'justify-center px-2'
-                    )}
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-between text-xs font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 h-8"
                   >
-                    <item.icon className={cn('h-5 w-5', !isCollapsed && 'mr-3')} />
-                    {!isCollapsed && (
-                      <>
+                    <span>{section.title}</span>
+                    {openSections[section.title] ? (
+                      <ChevronDown className="h-3 w-3" />
+                    ) : (
+                      <ChevronRight className="h-3 w-3" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-1">
+                  {section.items.map((item) => {
+                    const isActive = location.pathname === item.href;
+                    return (
+                      <NavLink
+                        key={item.href}
+                        to={item.href}
+                        className={cn(
+                          'flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group',
+                          isActive
+                            ? 'bg-emerald-100 text-emerald-900'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        )}
+                      >
+                        <item.icon className="h-4 w-4 mr-3 flex-shrink-0" />
                         <span className="flex-1">{item.title}</span>
                         {item.badge && (
                           <span className="ml-auto bg-emerald-600 text-white text-xs rounded-full px-2 py-0.5">
                             {item.badge}
                           </span>
                         )}
-                      </>
-                    )}
-                  </NavLink>
-                );
-              })}
-            </CollapsibleContent>
-          </Collapsible>
+                      </NavLink>
+                    );
+                  })}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+            
+            {isCollapsed && (
+              <div className="space-y-1">
+                {section.items.map((item) => {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <NavLink
+                      key={item.href}
+                      to={item.href}
+                      className={cn(
+                        'flex items-center justify-center p-3 rounded-md transition-colors group relative',
+                        isActive
+                          ? 'bg-emerald-100 text-emerald-900'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      )}
+                      title={item.title}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      {item.badge && (
+                        <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                          {item.badge}
+                        </span>
+                      )}
+                    </NavLink>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         ))}
       </nav>
 
@@ -401,7 +432,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed, onToggle }) => {
         {!isCollapsed && userProfile && (
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 bg-emerald-100 rounded-full flex items-center justify-center">
+              <div className="h-8 w-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
                 <User className="h-4 w-4 text-emerald-600" />
               </div>
               <div className="flex-1 min-w-0">
