@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
@@ -14,15 +13,11 @@ import {
   Calendar,
   Shield,
   Star,
-  MapPin,
   UserCheck,
   TrendingUp,
-  Eye,
   Handshake,
   ClipboardList,
-  FileCheck,
   DollarSign,
-  PieChart,
   Activity,
   Receipt,
   Droplets,

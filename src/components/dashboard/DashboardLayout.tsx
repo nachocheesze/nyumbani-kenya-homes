@@ -24,8 +24,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Desktop Sidebar */}
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Desktop Sidebar - Fixed positioning */}
       <div className="hidden md:block">
         <Sidebar 
           role={userProfile.role} 
@@ -49,8 +49,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         onClose={() => setMobileSidebarOpen(false)}
       />
       
-      {/* Main Content Area with proper spacing for fixed sidebar */}
-      <div className={`min-h-screen transition-all duration-300 ${
+      {/* Main Content Area */}
+      <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${
         sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
       }`}>
         {/* Mobile Header */}
@@ -64,11 +64,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <Menu className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-semibold text-gray-900">Nyumbani</h1>
-          <div className="w-10" /> {/* Spacer for centering */}
+          <div className="w-10" />
         </div>
         
         {/* Main Content */}
-        <main className="p-4 md:p-6">
+        <main className="flex-1 p-4 md:p-6">
           {children}
         </main>
       </div>
