@@ -58,10 +58,18 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
       landlord_id: editingProperty.landlord_id || '',
       agent_id: editingProperty.agent_id || ''
     } : {
+      title: '',
+      address: '',
+      city: '',
+      county: '',
+      property_type: '',
       bedrooms: 0,
       bathrooms: 0,
       rent_amount: 0,
-      deposit_amount: 0
+      deposit_amount: 0,
+      description: '',
+      landlord_id: '',
+      agent_id: ''
     }
   });
 
@@ -70,8 +78,18 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
     
     try {
       const propertyData = {
-        ...data,
+        title: data.title,
+        address: data.address,
+        city: data.city,
+        county: data.county,
+        property_type: data.property_type,
+        bedrooms: data.bedrooms || 0,
+        bathrooms: data.bathrooms || 0,
+        rent_amount: data.rent_amount || 0,
+        deposit_amount: data.deposit_amount || 0,
+        description: data.description || '',
         landlord_id: userProfile?.role === 'landlord' ? userProfile.id : data.landlord_id,
+        agent_id: data.agent_id || null,
         is_available: true
       };
 
@@ -84,7 +102,7 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
       } else {
         result = await supabase
           .from('properties')
-          .insert([propertyData]);
+          .insert(propertyData);
       }
 
       if (result.error) throw result.error;
