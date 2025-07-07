@@ -163,6 +163,9 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
     setIsSubmitting(true);
     
     try {
+      console.log('Submitting property data:', data);
+      console.log('User profile:', userProfile);
+      
       // Determine landlord_id based on user role
       let landlord_id = data.landlord_id;
       if (userProfile?.role === 'landlord') {
@@ -188,6 +191,8 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
         is_available: true
       };
 
+      console.log('Final property data to submit:', propertyData);
+
       let result;
       if (propertyToEdit) {
         result = await supabase
@@ -200,7 +205,10 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
           .insert(propertyData);
       }
 
-      if (result.error) throw result.error;
+      if (result.error) {
+        console.error('Supabase error:', result.error);
+        throw result.error;
+      }
 
       toast({
         title: "Success",
@@ -216,7 +224,7 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
       console.error('Error saving property:', error);
       toast({
         title: "Error",
-        description: `Failed to ${propertyToEdit ? 'update' : 'create'} property`,
+        description: `Failed to ${propertyToEdit ? 'update' : 'create'} property. Please check your permissions and try again.`,
         variant: "destructive"
       });
     } finally {

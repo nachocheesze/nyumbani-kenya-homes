@@ -18,10 +18,12 @@ const PropertiesManagement = () => {
 
   useEffect(() => {
     fetchProperties();
-  }, []);
+  }, [userProfile]);
 
   const fetchProperties = async () => {
     try {
+      console.log('Fetching properties for user:', userProfile?.id, 'with role:', userProfile?.role);
+      
       let query = supabase.from('properties').select('*');
       
       // Role-based filtering
@@ -29,16 +31,39 @@ const PropertiesManagement = () => {
         query = query.eq('landlord_id', userProfile.id);
       } else if (userProfile?.role === 'agent') {
         query = query.eq('agent_id', userProfile.id);
+      } else if (userProfile?.role === 'real_estate_company') {
+        // For real estate companies, get properties assigned to their agents
+        const { data: companyAgents } = await supabase
+          .from('real_estate_company_agents')
+          .select('agent_id')
+          .eq('company_id', userProfile.id);
+        
+        if (companyAgents && companyAgents.length > 0) {
+          const agentIds = companyAgents.map(ca => ca.agent_id);
+          query = query.in('agent_id', agentIds);
+        } else {
+          // If no agents, show empty results
+          setProperties([]);
+          setLoading(false);
+          return;
+        }
       }
+      // super_admin and admin can see all properties (no additional filter needed)
       
       const { data, error } = await query.order('created_at', { ascending: false });
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Properties fetch error:', error);
+        throw error;
+      }
+      
+      console.log('Fetched properties:', data?.length || 0);
       setProperties(data || []);
     } catch (error) {
       console.error('Error fetching properties:', error);
       toast({
         title: "Error",
-        description: "Failed to load properties",
+        description: "Failed to load properties. Please check your permissions and try again.",
         variant: "destructive"
       });
     } finally {
@@ -73,7 +98,7 @@ const PropertiesManagement = () => {
     }
   };
 
-  const canManageProperties = ['super_admin', 'admin', 'landlord', 'agent'].includes(userProfile?.role || '');
+  const canManageProperties = ['super_admin', 'admin', 'landlord', 'agent', 'real_estate_company'].includes(userProfile?.role || '');
 
   if (!canManageProperties) {
     return (
