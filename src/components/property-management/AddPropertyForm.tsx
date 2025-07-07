@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -12,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const propertySchema = z.object({
   title: z.string().min(1, 'Property name is required'),
@@ -40,23 +39,90 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { id } = useParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [landlords, setLandlords] = useState<any[]>([]);
+  const [agents, setAgents] = useState<any[]>([]);
+  const [propertyToEdit, setPropertyToEdit] = useState(editingProperty);
+
+  // Fetch property data if editing
+  useEffect(() => {
+    if (id && !editingProperty) {
+      fetchPropertyData();
+    }
+  }, [id]);
+
+  // Fetch landlords and agents for admin/super_admin
+  useEffect(() => {
+    if (['admin', 'super_admin'].includes(userProfile?.role || '')) {
+      fetchLandlords();
+      fetchAgents();
+    }
+  }, [userProfile]);
+
+  const fetchPropertyData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      setPropertyToEdit(data);
+    } catch (error) {
+      console.error('Error fetching property:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load property data",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const fetchLandlords = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, full_name')
+        .eq('role', 'landlord');
+
+      if (error) throw error;
+      setLandlords(data || []);
+    } catch (error) {
+      console.error('Error fetching landlords:', error);
+    }
+  };
+
+  const fetchAgents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, full_name')
+        .eq('role', 'agent');
+
+      if (error) throw error;
+      setAgents(data || []);
+    } catch (error) {
+      console.error('Error fetching agents:', error);
+    }
+  };
 
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
-    defaultValues: editingProperty ? {
-      title: editingProperty.title || '',
-      address: editingProperty.address || '',
-      city: editingProperty.city || '',
-      county: editingProperty.county || '',
-      property_type: editingProperty.property_type || '',
-      bedrooms: editingProperty.bedrooms || 0,
-      bathrooms: editingProperty.bathrooms || 0,
-      rent_amount: editingProperty.rent_amount || 0,
-      deposit_amount: editingProperty.deposit_amount || 0,
-      description: editingProperty.description || '',
-      landlord_id: editingProperty.landlord_id || '',
-      agent_id: editingProperty.agent_id || ''
+    defaultValues: propertyToEdit ? {
+      title: propertyToEdit.title || '',
+      address: propertyToEdit.address || '',
+      city: propertyToEdit.city || '',
+      county: propertyToEdit.county || '',
+      property_type: propertyToEdit.property_type || '',
+      bedrooms: propertyToEdit.bedrooms || 0,
+      bathrooms: propertyToEdit.bathrooms || 0,
+      rent_amount: propertyToEdit.rent_amount || 0,
+      deposit_amount: propertyToEdit.deposit_amount || 0,
+      description: propertyToEdit.description || '',
+      landlord_id: propertyToEdit.landlord_id || '',
+      agent_id: propertyToEdit.agent_id || ''
     } : {
       title: '',
       address: '',
@@ -73,10 +139,39 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
     }
   });
 
+  // Update form when propertyToEdit changes
+  useEffect(() => {
+    if (propertyToEdit) {
+      form.reset({
+        title: propertyToEdit.title || '',
+        address: propertyToEdit.address || '',
+        city: propertyToEdit.city || '',
+        county: propertyToEdit.county || '',
+        property_type: propertyToEdit.property_type || '',
+        bedrooms: propertyToEdit.bedrooms || 0,
+        bathrooms: propertyToEdit.bathrooms || 0,
+        rent_amount: propertyToEdit.rent_amount || 0,
+        deposit_amount: propertyToEdit.deposit_amount || 0,
+        description: propertyToEdit.description || '',
+        landlord_id: propertyToEdit.landlord_id || '',
+        agent_id: propertyToEdit.agent_id || ''
+      });
+    }
+  }, [propertyToEdit, form]);
+
   const onSubmit = async (data: PropertyFormData) => {
     setIsSubmitting(true);
     
     try {
+      // Determine landlord_id based on user role
+      let landlord_id = data.landlord_id;
+      if (userProfile?.role === 'landlord') {
+        landlord_id = userProfile.id;
+      } else if (userProfile?.role === 'agent' && !landlord_id) {
+        // For agents, we might need to get the landlord from their assignments
+        landlord_id = userProfile.id; // Temporary - should be handled differently
+      }
+
       const propertyData = {
         title: data.title,
         address: data.address,
@@ -88,17 +183,17 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
         rent_amount: data.rent_amount || 0,
         deposit_amount: data.deposit_amount || 0,
         description: data.description || '',
-        landlord_id: userProfile?.role === 'landlord' ? userProfile.id : data.landlord_id,
+        landlord_id: landlord_id,
         agent_id: data.agent_id || null,
         is_available: true
       };
 
       let result;
-      if (editingProperty) {
+      if (propertyToEdit) {
         result = await supabase
           .from('properties')
           .update(propertyData)
-          .eq('id', editingProperty.id);
+          .eq('id', propertyToEdit.id);
       } else {
         result = await supabase
           .from('properties')
@@ -109,19 +204,19 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
 
       toast({
         title: "Success",
-        description: `Property ${editingProperty ? 'updated' : 'created'} successfully`
+        description: `Property ${propertyToEdit ? 'updated' : 'created'} successfully`
       });
 
       if (onSuccess) onSuccess();
-      if (!editingProperty) {
+      if (!propertyToEdit) {
         form.reset();
-        navigate('/dashboard/property-management/properties');
       }
+      navigate('/dashboard/property-management/properties');
     } catch (error) {
       console.error('Error saving property:', error);
       toast({
         title: "Error",
-        description: `Failed to ${editingProperty ? 'update' : 'create'} property`,
+        description: `Failed to ${propertyToEdit ? 'update' : 'create'} property`,
         variant: "destructive"
       });
     } finally {
@@ -139,10 +234,13 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
     'Commercial'
   ];
 
+  const canAssignLandlord = ['admin', 'super_admin'].includes(userProfile?.role || '');
+  const canAssignAgent = ['landlord', 'admin', 'super_admin', 'real_estate_company'].includes(userProfile?.role || '');
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{editingProperty ? 'Edit Property' : 'Add New Property'}</CardTitle>
+        <CardTitle>{propertyToEdit ? 'Edit Property' : 'Add New Property'}</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -328,13 +426,68 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
               )}
             />
 
+            {canAssignLandlord && (
+              <FormField
+                control={form.control}
+                name="landlord_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assign to Landlord</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select landlord" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {landlords.map((landlord) => (
+                          <SelectItem key={landlord.id} value={landlord.id}>
+                            {landlord.full_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {canAssignAgent && (
+              <FormField
+                control={form.control}
+                name="agent_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assign Agent (Optional)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select agent" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">No Agent</SelectItem>
+                        {agents.map((agent) => (
+                          <SelectItem key={agent.id} value={agent.id}>
+                            {agent.full_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <div className="flex gap-4">
               <Button 
                 type="submit" 
                 disabled={isSubmitting}
                 className="flex-1"
               >
-                {isSubmitting ? 'Saving...' : (editingProperty ? 'Update Property' : 'Create Property')}
+                {isSubmitting ? 'Saving...' : (propertyToEdit ? 'Update Property' : 'Create Property')}
               </Button>
               <Button 
                 type="button" 
