@@ -14,6 +14,9 @@ import DeveloperDashboard from "@/components/dashboard/overview/DeveloperDashboa
 import InvestorDashboard from "@/components/dashboard/overview/InvestorDashboard";
 import ShortTermHostDashboard from "@/components/dashboard/overview/ShortTermHostDashboard";
 
+// Import property management
+import PropertyManagement from "@/pages/PropertyManagement";
+
 // Import tenant-specific pages
 import TenantRent from "@/components/dashboard/tenant/TenantRent";
 import TenantWallet from "@/components/dashboard/tenant/TenantWallet";
@@ -134,6 +137,9 @@ const Dashboard = () => {
       {/* Role-specific dashboard overview routes */}
       <Route path="/" element={getDashboardComponent(userProfile.role)} />
       <Route path={`/${userProfile.role}`} element={getDashboardComponent(userProfile.role)} />
+      
+      {/* Property Management routes */}
+      <Route path="/property-management/*" element={<PropertyManagement />} />
       
       {/* Tenant-specific routes */}
       <Route path="/tenant/rent" element={<TenantRent />} />
