@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Sidebar from './Sidebar';
 import MobileSidebar from './MobileSidebar';
 import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
+import { Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -42,11 +42,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       />
       
       {/* Main Content Area */}
-      <div 
-        className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out ${
-          sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
-        }`}
-      >
+      <div className="flex-1 flex flex-col min-h-screen">
         {/* Mobile Header with Toggle */}
         <div className="md:hidden flex items-center justify-between p-4 border-b bg-white">
           <Button
@@ -61,14 +57,27 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <div className="w-8" />
         </div>
 
-        {/* Desktop Header */}
+        {/* Desktop Header with Toggle */}
         <div className="hidden md:flex items-center justify-between p-4 border-b bg-white">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="flex items-center space-x-2"
+          >
+            {sidebarCollapsed ? (
+              <PanelLeftOpen className="h-5 w-5" />
+            ) : (
+              <PanelLeftClose className="h-5 w-5" />
+            )}
+            {!sidebarCollapsed && <span>Collapse</span>}
+          </Button>
           <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
           <div className="w-20" />
         </div>
         
         {/* Main Content */}
-        <main className="flex-1 p-6 overflow-auto bg-gray-50">
+        <main className="flex-1 p-6 overflow-auto">
           {children}
         </main>
       </div>

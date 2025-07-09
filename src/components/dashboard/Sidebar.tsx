@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
@@ -31,15 +32,12 @@ import {
   ChevronDown,
   ChevronRight,
   LogOut,
-  User,
-  PanelLeftClose,
-  PanelLeftOpen
+  User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/contexts/AuthContext';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface NavigationItem {
   title: string;
@@ -333,82 +331,19 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed, onToggle }) => {
     await signOut();
   };
 
-  const SidebarItem = ({ item }: { item: NavigationItem }) => {
-    const isActive = location.pathname === item.href;
-    
-    const content = (
-      <NavLink
-        to={item.href}
-        className={cn(
-          'flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group relative',
-          isActive
-            ? 'bg-emerald-100 text-emerald-900'
-            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-          isCollapsed ? 'justify-center px-2' : ''
-        )}
-      >
-        <item.icon className={cn('h-4 w-4 flex-shrink-0', !isCollapsed && 'mr-3')} />
-        {!isCollapsed && (
-          <>
-            <span className="flex-1">{item.title}</span>
-            {item.badge && (
-              <span className="ml-auto bg-emerald-600 text-white text-xs rounded-full px-2 py-0.5">
-                {item.badge}
-              </span>
-            )}
-          </>
-        )}
-        {isCollapsed && item.badge && (
-          <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-            {item.badge}
-          </span>
-        )}
-      </NavLink>
-    );
-
-    if (isCollapsed) {
-      return (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {content}
-            </TooltipTrigger>
-            <TooltipContent side="right" className="ml-2">
-              <p>{item.title}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-    }
-
-    return content;
-  };
-
   return (
     <div className={cn(
       'fixed left-0 top-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 flex flex-col z-40',
       isCollapsed ? 'w-16' : 'w-64'
     )}>
       {/* Header */}
-      <div className={cn('p-4 border-b flex items-center justify-between', isCollapsed && 'px-2')}>
+      <div className={cn('p-4 border-b', isCollapsed && 'px-2')}>
         <div className="flex items-center space-x-2">
           <Home className="h-8 w-8 text-emerald-600 flex-shrink-0" />
           {!isCollapsed && (
             <span className="text-xl font-bold text-gray-900">Nyumbani</span>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onToggle}
-          className={cn('p-1.5', isCollapsed && 'mx-auto')}
-        >
-          {isCollapsed ? (
-            <PanelLeftOpen className="h-4 w-4" />
-          ) : (
-            <PanelLeftClose className="h-4 w-4" />
-          )}
-        </Button>
       </div>
 
       {/* Navigation */}
@@ -434,18 +369,58 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed, onToggle }) => {
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-1">
-                  {section.items.map((item) => (
-                    <SidebarItem key={item.href} item={item} />
-                  ))}
+                  {section.items.map((item) => {
+                    const isActive = location.pathname === item.href;
+                    return (
+                      <NavLink
+                        key={item.href}
+                        to={item.href}
+                        className={cn(
+                          'flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group',
+                          isActive
+                            ? 'bg-emerald-100 text-emerald-900'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        )}
+                      >
+                        <item.icon className="h-4 w-4 mr-3 flex-shrink-0" />
+                        <span className="flex-1">{item.title}</span>
+                        {item.badge && (
+                          <span className="ml-auto bg-emerald-600 text-white text-xs rounded-full px-2 py-0.5">
+                            {item.badge}
+                          </span>
+                        )}
+                      </NavLink>
+                    );
+                  })}
                 </CollapsibleContent>
               </Collapsible>
             )}
             
             {isCollapsed && (
               <div className="space-y-1">
-                {section.items.map((item) => (
-                  <SidebarItem key={item.href} item={item} />
-                ))}
+                {section.items.map((item) => {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <NavLink
+                      key={item.href}
+                      to={item.href}
+                      className={cn(
+                        'flex items-center justify-center p-3 rounded-md transition-colors group relative',
+                        isActive
+                          ? 'bg-emerald-100 text-emerald-900'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      )}
+                      title={item.title}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      {item.badge && (
+                        <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                          {item.badge}
+                        </span>
+                      )}
+                    </NavLink>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -472,55 +447,18 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isCollapsed, onToggle }) => {
           </div>
         )}
         
-        {isCollapsed && userProfile ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="mb-4 p-2 bg-gray-50 rounded-lg flex justify-center">
-                  <div className="h-8 w-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                    <User className="h-4 w-4 text-emerald-600" />
-                  </div>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="ml-2">
-                <p>{userProfile.full_name}</p>
-                <p className="text-xs opacity-75 capitalize">
-                  {userProfile.role.replace('_', ' ')}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ) : null}
-        
-        {isCollapsed ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={handleSignOut}
-                  variant="outline"
-                  size="sm"
-                  className="w-full px-2 flex justify-center"
-                >
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="ml-2">
-                <p>Sign Out</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ) : (
-          <Button
-            onClick={handleSignOut}
-            variant="outline"
-            size="sm"
-            className="w-full flex items-center justify-center space-x-2"
-          >
-            <LogOut className="h-4 w-4" />
-            <span>Sign Out</span>
-          </Button>
-        )}
+        <Button
+          onClick={handleSignOut}
+          variant="outline"
+          size="sm"
+          className={cn(
+            'w-full flex items-center justify-center space-x-2',
+            isCollapsed && 'px-2'
+          )}
+        >
+          <LogOut className="h-4 w-4" />
+          {!isCollapsed && <span>Sign Out</span>}
+        </Button>
       </div>
     </div>
   );
