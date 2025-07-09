@@ -1,10 +1,12 @@
 
 import React from 'react';
-import { X, Home, LogOut, User } from 'lucide-react';
+import { X, Home, LogOut, User, ChevronDown, ChevronRight } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useState } from 'react';
 
 interface MobileSidebarProps {
   role: string;
@@ -15,22 +17,174 @@ interface MobileSidebarProps {
 const MobileSidebar: React.FC<MobileSidebarProps> = ({ role, isOpen, onClose }) => {
   const location = useLocation();
   const { signOut, userProfile } = useAuth();
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    'Overview': true,
+    'Property Management': true,
+    'Financial': false,
+    'Communication': false,
+    'Business': false,
+    'Services': false,
+    'Platform Management': false,
+    'Analytics & Finance': false,
+    'Business Management': false,
+    'Guest Management': false,
+    'Development': false,
+    'Investment Management': false,
+    'Quality': false
+  });
 
-  // Simple navigation items for mobile
-  const mobileNavItems = [
-    { title: 'Dashboard', href: `/dashboard/${role}`, icon: Home },
-    // Add key navigation items based on role
-    ...(role === 'tenant' ? [
-      { title: 'Rent', href: '/dashboard/tenant/rent', icon: Home },
-      { title: 'Maintenance', href: '/dashboard/tenant/maintenance', icon: Home },
-      { title: 'Messages', href: '/dashboard/tenant/messages', icon: Home }
-    ] : []),
-    ...(role === 'landlord' ? [
-      { title: 'Properties', href: '/dashboard/landlord/properties', icon: Home },
-      { title: 'Tenants', href: '/dashboard/landlord/tenants', icon: Home },
-      { title: 'Transactions', href: '/dashboard/landlord/transactions', icon: Home }
-    ] : [])
-  ];
+  const toggleSection = (sectionTitle: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [sectionTitle]: !prev[sectionTitle]
+    }));
+  };
+
+  const getNavigationByRole = (role: string) => {
+    const dashboardItem = { title: 'Dashboard', href: `/dashboard/${role}`, icon: Home };
+
+    switch (role) {
+      case 'tenant':
+        return [
+          { title: 'Overview', items: [dashboardItem], defaultOpen: true },
+          {
+            title: 'Property Management',
+            items: [
+              { title: 'Rent', href: '/dashboard/tenant/rent', icon: 'CreditCard' },
+              { title: 'Lease', href: '/dashboard/tenant/lease', icon: 'FileText' },
+              { title: 'Maintenance', href: '/dashboard/tenant/maintenance', icon: 'Wrench', badge: '2' }
+            ],
+            defaultOpen: true
+          },
+          {
+            title: 'Financial',
+            items: [
+              { title: 'Wallet', href: '/dashboard/tenant/wallet', icon: 'Wallet' }
+            ]
+          },
+          {
+            title: 'Communication',
+            items: [
+              { title: 'Messages', href: '/dashboard/tenant/messages', icon: 'MessageSquare', badge: '3' }
+            ]
+          }
+        ];
+
+      case 'landlord':
+        return [
+          { title: 'Overview', items: [dashboardItem], defaultOpen: true },
+          {
+            title: 'Property Management',
+            items: [
+              { title: 'Properties', href: '/dashboard/property-management/properties', icon: 'Building' },
+              { title: 'Tenants', href: '/dashboard/property-management/tenants', icon: 'Users' },
+              { title: 'Leases', href: '/dashboard/landlord/leases', icon: 'FileText' },
+              { title: 'Requests', href: '/dashboard/landlord/requests', icon: 'Wrench', badge: '5' }
+            ],
+            defaultOpen: true
+          },
+          {
+            title: 'Financial',
+            items: [
+              { title: 'Transactions', href: '/dashboard/landlord/transactions', icon: 'Wallet' },
+              { title: 'Insurance', href: '/dashboard/landlord/insurance', icon: 'Shield' },
+              { title: 'Reports', href: '/dashboard/landlord/reports', icon: 'BarChart3' }
+            ]
+          },
+          {
+            title: 'Communication',
+            items: [
+              { title: 'Messages', href: '/dashboard/landlord/messages', icon: 'MessageSquare' },
+              { title: 'Agents', href: '/dashboard/landlord/agents', icon: 'Handshake' },
+              { title: 'Documents', href: '/dashboard/landlord/documents', icon: 'ClipboardList' }
+            ]
+          }
+        ];
+
+      case 'agent':
+        return [
+          { title: 'Overview', items: [dashboardItem], defaultOpen: true },
+          {
+            title: 'Business',
+            items: [
+              { title: 'Properties', href: '/dashboard/property-management/properties', icon: 'Building' },
+              { title: 'Listings', href: '/dashboard/agent/listings', icon: 'Building' },
+              { title: 'Viewings', href: '/dashboard/agent/viewings', icon: 'Calendar' },
+              { title: 'Clients', href: '/dashboard/agent/clients', icon: 'Users' }
+            ],
+            defaultOpen: true
+          },
+          {
+            title: 'Financial',
+            items: [
+              { title: 'Earnings', href: '/dashboard/agent/earnings', icon: 'DollarSign' }
+            ]
+          },
+          {
+            title: 'Communication',
+            items: [
+              { title: 'Messages', href: '/dashboard/agent/messages', icon: 'MessageSquare' }
+            ]
+          }
+        ];
+
+      case 'admin':
+      case 'super_admin':
+        return [
+          { title: 'Overview', items: [dashboardItem], defaultOpen: true },
+          {
+            title: 'Property Management',
+            items: [
+              { title: 'Properties', href: '/dashboard/property-management/properties', icon: 'Building' },
+              { title: 'Tenants', href: '/dashboard/property-management/tenants', icon: 'Users' }
+            ],
+            defaultOpen: true
+          },
+          {
+            title: 'Platform Management',
+            items: [
+              { title: 'Users', href: '/dashboard/admin/users', icon: 'Users' },
+              { title: 'KYC Verification', href: '/dashboard/admin/kyc', icon: 'Shield' },
+              { title: 'System Config', href: '/dashboard/admin/config', icon: 'Settings' }
+            ]
+          },
+          {
+            title: 'Analytics & Finance',
+            items: [
+              { title: 'Platform Finances', href: '/dashboard/admin/finances', icon: 'DollarSign' },
+              { title: 'Analytics', href: '/dashboard/admin/analytics', icon: 'Activity' }
+            ]
+          }
+        ];
+
+      default:
+        return [{ title: 'Overview', items: [dashboardItem], defaultOpen: true }];
+    }
+  };
+
+  const navigation = getNavigationByRole(role);
+
+  const getIconComponent = (iconName: string) => {
+    const icons = {
+      'Home': Home,
+      'Building': require('lucide-react').Building,
+      'Users': require('lucide-react').Users,
+      'FileText': require('lucide-react').FileText,
+      'Wrench': require('lucide-react').Wrench,
+      'Wallet': require('lucide-react').Wallet,
+      'MessageSquare': require('lucide-react').MessageSquare,
+      'CreditCard': require('lucide-react').CreditCard,
+      'Shield': require('lucide-react').Shield,
+      'BarChart3': require('lucide-react').BarChart3,
+      'Handshake': require('lucide-react').Handshake,
+      'ClipboardList': require('lucide-react').ClipboardList,
+      'Calendar': require('lucide-react').Calendar,
+      'DollarSign': require('lucide-react').DollarSign,
+      'Settings': require('lucide-react').Settings,
+      'Activity': require('lucide-react').Activity
+    };
+    return icons[iconName as keyof typeof icons] || Home;
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -80,25 +234,56 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ role, isOpen, onClose }) 
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          {mobileNavItems.map((item) => {
-            const isActive = location.pathname === item.href;
-            return (
-              <NavLink
-                key={item.href}
-                to={item.href}
-                onClick={handleNavClick}
-                className={cn(
-                  'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-                  isActive
-                    ? 'bg-emerald-100 text-emerald-900'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                )}
+          {navigation.map((section) => (
+            <div key={section.title} className="space-y-1">
+              <Collapsible 
+                open={openSections[section.title]}
+                onOpenChange={() => toggleSection(section.title)}
               >
-                <item.icon className="h-5 w-5 mr-3" />
-                <span>{item.title}</span>
-              </NavLink>
-            );
-          })}
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-between text-xs font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 h-8"
+                  >
+                    <span>{section.title}</span>
+                    {openSections[section.title] ? (
+                      <ChevronDown className="h-3 w-3" />
+                    ) : (
+                      <ChevronRight className="h-3 w-3" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-1">
+                  {section.items.map((item) => {
+                    const isActive = location.pathname === item.href;
+                    const IconComponent = getIconComponent(item.icon);
+                    
+                    return (
+                      <NavLink
+                        key={item.href}
+                        to={item.href}
+                        onClick={handleNavClick}
+                        className={cn(
+                          'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
+                          isActive
+                            ? 'bg-emerald-100 text-emerald-900'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        )}
+                      >
+                        <IconComponent className="h-5 w-5 mr-3" />
+                        <span className="flex-1">{item.title}</span>
+                        {item.badge && (
+                          <span className="ml-auto bg-emerald-600 text-white text-xs rounded-full px-2 py-0.5">
+                            {item.badge}
+                          </span>
+                        )}
+                      </NavLink>
+                    );
+                  })}
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+          ))}
         </nav>
 
         {/* User Section */}

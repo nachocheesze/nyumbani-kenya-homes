@@ -117,92 +117,106 @@ const PropertiesManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 md:space-y-6 w-full max-w-full">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Property Management</h1>
-          <p className="text-gray-600">Manage your properties</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Property Management</h1>
+          <p className="text-sm md:text-base text-gray-600">Manage your properties</p>
         </div>
-        <Button onClick={() => navigate('/dashboard/property-management/properties/add')}>
+        <Button 
+          onClick={() => navigate('/dashboard/property-management/properties/add')}
+          className="w-full sm:w-auto"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add New Property
         </Button>
       </div>
 
-      <Card>
+      <Card className="w-full max-w-full">
         <CardHeader>
-          <CardTitle>Properties ({properties.length})</CardTitle>
+          <CardTitle className="text-lg md:text-xl">Properties ({properties.length})</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 md:p-6">
           {properties.length === 0 ? (
-            <div className="text-center py-8">
+            <div className="text-center py-8 px-4">
               <p className="text-gray-500 mb-4">No properties found</p>
-              <Button onClick={() => navigate('/dashboard/property-management/properties/add')}>
+              <Button 
+                onClick={() => navigate('/dashboard/property-management/properties/add')}
+                className="w-full sm:w-auto"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Your First Property
               </Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Property Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Rent</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {properties.map((property) => (
-                  <TableRow key={property.id}>
-                    <TableCell className="font-medium">{property.title}</TableCell>
-                    <TableCell>{property.property_type}</TableCell>
-                    <TableCell>{property.city}, {property.county}</TableCell>
-                    <TableCell>
-                      {property.rent_amount ? `KES ${property.rent_amount.toLocaleString()}` : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        property.is_available 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {property.is_available ? 'Available' : 'Occupied'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => navigate(`/properties/${property.id}`)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => navigate(`/dashboard/property-management/properties/edit/${property.id}`)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        {(userProfile?.role === 'super_admin' || userProfile?.role === 'admin' || property.landlord_id === userProfile?.id) && (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[120px]">Property Name</TableHead>
+                    <TableHead className="min-w-[100px]">Type</TableHead>
+                    <TableHead className="min-w-[120px]">Location</TableHead>
+                    <TableHead className="min-w-[100px]">Rent</TableHead>
+                    <TableHead className="min-w-[80px]">Status</TableHead>
+                    <TableHead className="min-w-[120px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {properties.map((property) => (
+                    <TableRow key={property.id}>
+                      <TableCell className="font-medium">{property.title}</TableCell>
+                      <TableCell>{property.property_type}</TableCell>
+                      <TableCell>{property.city}, {property.county}</TableCell>
+                      <TableCell>
+                        {property.rent_amount ? `KES ${property.rent_amount.toLocaleString()}` : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          property.is_available 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {property.is_available ? 'Available' : 'Occupied'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => handleDelete(property.id)}
+                            onClick={() => navigate(`/properties/${property.id}`)}
+                            className="w-full sm:w-auto"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
+                            <span className="ml-1 sm:hidden">View</span>
                           </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigate(`/dashboard/property-management/properties/edit/${property.id}`)}
+                            className="w-full sm:w-auto"
+                          >
+                            <Edit className="h-4 w-4" />
+                            <span className="ml-1 sm:hidden">Edit</span>
+                          </Button>
+                          {(userProfile?.role === 'super_admin' || userProfile?.role === 'admin' || property.landlord_id === userProfile?.id) && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleDelete(property.id)}
+                              className="w-full sm:w-auto"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="ml-1 sm:hidden">Delete</span>
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>

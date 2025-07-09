@@ -24,7 +24,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex w-full overflow-hidden">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <Sidebar 
@@ -43,7 +43,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       
       {/* Main Content Area */}
       <div 
-        className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out ${
+        className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out w-full ${
           sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
         }`}
       >
@@ -67,9 +67,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <div className="w-20" />
         </div>
         
-        {/* Main Content */}
-        <main className="flex-1 p-6 overflow-auto bg-gray-50">
-          {children}
+        {/* Main Content - Fully responsive */}
+        <main className="flex-1 p-4 md:p-6 overflow-auto bg-gray-50 w-full">
+          <div className="w-full max-w-full">
+            {children}
+          </div>
         </main>
       </div>
     </div>

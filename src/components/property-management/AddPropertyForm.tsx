@@ -1,64 +1,111 @@
+
 import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
-const propertySchema = z.object({
-  title: z.string().min(1, 'Property name is required'),
-  address: z.string().min(1, 'Address is required'),
-  city: z.string().min(1, 'City is required'),
-  county: z.string().min(1, 'County is required'),
-  property_type: z.string().min(1, 'Property type is required'),
-  bedrooms: z.number().min(0).optional(),
-  bathrooms: z.number().min(0).optional(),
-  rent_amount: z.number().min(0).optional(),
-  deposit_amount: z.number().min(0).optional(),
-  description: z.string().optional(),
-  landlord_id: z.string().optional(),
-  agent_id: z.string().optional()
-});
-
-type PropertyFormData = z.infer<typeof propertySchema>;
-
-interface AddPropertyFormProps {
-  onSuccess?: () => void;
-  editingProperty?: any;
-}
-
-const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingProperty }) => {
+const AddPropertyForm = () => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { id } = useParams();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isEditing = Boolean(id);
+
+  const [formData, setFormData] = useState({
+    title: '',
+    property_type: '',
+    address: '',
+    city: '',
+    county: '',
+    bedrooms: '',
+    bathrooms: '',
+    rent_amount: '',
+    deposit_amount: '',
+    description: '',
+    amenities: [] as string[],
+    features: [] as string[],
+    is_available: true,
+    available_from: '',
+    landlord_id: '',
+    agent_id: ''
+  });
+
+  const [loading, setLoading] = useState(false);
   const [landlords, setLandlords] = useState<any[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
-  const [propertyToEdit, setPropertyToEdit] = useState(editingProperty);
 
-  // Fetch property data if editing
+  const propertyTypes = [
+    { value: 'apartment', label: 'Apartment' },
+    { value: 'house', label: 'House' },
+    { value: 'bedsitter', label: 'Bedsitter' },
+    { value: 'studio', label: 'Studio' },
+    { value: 'villa', label: 'Villa' },
+    { value: 'townhouse', label: 'Townhouse' },
+    { value: 'commercial', label: 'Commercial' }
+  ];
+
+  const availableAmenities = [
+    'WiFi', 'Parking', 'Water', 'Electricity', 'Security', 'Generator', 
+    'Swimming Pool', 'Gym', 'Garden', 'Balcony', 'Elevator', 'CCTV'
+  ];
+
+  const availableFeatures = [
+    'Furnished', 'Semi-Furnished', 'Unfurnished', 'Pet Friendly', 
+    'Air Conditioning', 'Heating', 'Fireplace', 'Storage'
+  ];
+
+  const kenyanCounties = [
+    'Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika', 'Malindi',
+    'Kitale', 'Garissa', 'Kakamega', 'Kisii', 'Meru', 'Nyeri', 'Machakos',
+    'Kilifi', 'Uasin Gishu', 'Kiambu', 'Laikipia', 'Kajiado', 'Murang\'a'
+  ];
+
   useEffect(() => {
-    if (id && !editingProperty) {
+    fetchUsersForAssignment();
+    if (isEditing) {
       fetchPropertyData();
     }
-  }, [id]);
+  }, [isEditing, id]);
 
-  // Fetch landlords and agents for admin/super_admin
-  useEffect(() => {
-    if (['admin', 'super_admin'].includes(userProfile?.role || '')) {
-      fetchLandlords();
-      fetchAgents();
+  const fetchUsersForAssignment = async () => {
+    try {
+      if (userProfile?.role === 'super_admin' || userProfile?.role === 'admin') {
+        // Super admin and admin can assign to any landlord
+        const { data: landlordData } = await supabase
+          .from('users')
+          .select('id, full_name')
+          .eq('role', 'landlord');
+        setLandlords(landlordData || []);
+
+        // Can also assign to any agent
+        const { data: agentData } = await supabase
+          .from('users')
+          .select('id, full_name')
+          .eq('role', 'agent');
+        setAgents(agentData || []);
+      } else if (userProfile?.role === 'real_estate_company') {
+        // Real estate company can assign to their agents
+        const { data: companyAgents } = await supabase
+          .from('real_estate_company_agents')
+          .select('agent_id, users!inner(id, full_name)')
+          .eq('company_id', userProfile.id);
+        
+        const agentsList = companyAgents?.map(ca => ca.users) || [];
+        setAgents(agentsList);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
     }
-  }, [userProfile]);
+  };
 
   const fetchPropertyData = async () => {
     try {
@@ -69,9 +116,27 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
         .single();
 
       if (error) throw error;
-      setPropertyToEdit(data);
+
+      setFormData({
+        title: data.title || '',
+        property_type: data.property_type || '',
+        address: data.address || '',
+        city: data.city || '',
+        county: data.county || '',
+        bedrooms: data.bedrooms?.toString() || '',
+        bathrooms: data.bathrooms?.toString() || '',
+        rent_amount: data.rent_amount?.toString() || '',
+        deposit_amount: data.deposit_amount?.toString() || '',
+        description: data.description || '',
+        amenities: data.amenities || [],
+        features: data.features || [],
+        is_available: data.is_available ?? true,
+        available_from: data.available_from || '',
+        landlord_id: data.landlord_id || '',
+        agent_id: data.agent_id || ''
+      });
     } catch (error) {
-      console.error('Error fetching property:', error);
+      console.error('Error fetching property data:', error);
       toast({
         title: "Error",
         description: "Failed to load property data",
@@ -80,373 +145,298 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
     }
   };
 
-  const fetchLandlords = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, full_name')
-        .eq('role', 'landlord');
-
-      if (error) throw error;
-      setLandlords(data || []);
-    } catch (error) {
-      console.error('Error fetching landlords:', error);
-    }
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  const fetchAgents = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, full_name')
-        .eq('role', 'agent');
-
-      if (error) throw error;
-      setAgents(data || []);
-    } catch (error) {
-      console.error('Error fetching agents:', error);
-    }
+  const handleAmenityToggle = (amenity: string) => {
+    setFormData(prev => ({
+      ...prev,
+      amenities: prev.amenities.includes(amenity)
+        ? prev.amenities.filter(a => a !== amenity)
+        : [...prev.amenities, amenity]
+    }));
   };
 
-  const form = useForm<PropertyFormData>({
-    resolver: zodResolver(propertySchema),
-    defaultValues: propertyToEdit ? {
-      title: propertyToEdit.title || '',
-      address: propertyToEdit.address || '',
-      city: propertyToEdit.city || '',
-      county: propertyToEdit.county || '',
-      property_type: propertyToEdit.property_type || '',
-      bedrooms: propertyToEdit.bedrooms || 0,
-      bathrooms: propertyToEdit.bathrooms || 0,
-      rent_amount: propertyToEdit.rent_amount || 0,
-      deposit_amount: propertyToEdit.deposit_amount || 0,
-      description: propertyToEdit.description || '',
-      landlord_id: propertyToEdit.landlord_id || '',
-      agent_id: propertyToEdit.agent_id || ''
-    } : {
-      title: '',
-      address: '',
-      city: '',
-      county: '',
-      property_type: '',
-      bedrooms: 0,
-      bathrooms: 0,
-      rent_amount: 0,
-      deposit_amount: 0,
-      description: '',
-      landlord_id: '',
-      agent_id: ''
-    }
-  });
+  const handleFeatureToggle = (feature: string) => {
+    setFormData(prev => ({
+      ...prev,
+      features: prev.features.includes(feature)
+        ? prev.features.filter(f => f !== feature)
+        : [...prev.features, feature]
+    }));
+  };
 
-  // Update form when propertyToEdit changes
-  useEffect(() => {
-    if (propertyToEdit) {
-      form.reset({
-        title: propertyToEdit.title || '',
-        address: propertyToEdit.address || '',
-        city: propertyToEdit.city || '',
-        county: propertyToEdit.county || '',
-        property_type: propertyToEdit.property_type || '',
-        bedrooms: propertyToEdit.bedrooms || 0,
-        bathrooms: propertyToEdit.bathrooms || 0,
-        rent_amount: propertyToEdit.rent_amount || 0,
-        deposit_amount: propertyToEdit.deposit_amount || 0,
-        description: propertyToEdit.description || '',
-        landlord_id: propertyToEdit.landlord_id || '',
-        agent_id: propertyToEdit.agent_id || ''
-      });
-    }
-  }, [propertyToEdit, form]);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  const onSubmit = async (data: PropertyFormData) => {
-    setIsSubmitting(true);
-    
     try {
-      console.log('Submitting property data:', data);
-      console.log('User profile:', userProfile);
-      
-      // Determine landlord_id based on user role
-      let landlord_id = data.landlord_id;
-      if (userProfile?.role === 'landlord') {
-        landlord_id = userProfile.id;
-      } else if (userProfile?.role === 'agent' && !landlord_id) {
-        // For agents, we might need to get the landlord from their assignments
-        landlord_id = userProfile.id; // Temporary - should be handled differently
-      }
-
       const propertyData = {
-        title: data.title,
-        address: data.address,
-        city: data.city,
-        county: data.county,
-        property_type: data.property_type,
-        bedrooms: data.bedrooms || 0,
-        bathrooms: data.bathrooms || 0,
-        rent_amount: data.rent_amount || 0,
-        deposit_amount: data.deposit_amount || 0,
-        description: data.description || '',
-        landlord_id: landlord_id,
-        agent_id: data.agent_id || null,
-        is_available: true
+        title: formData.title,
+        property_type: formData.property_type,
+        address: formData.address,
+        city: formData.city,
+        county: formData.county,
+        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
+        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
+        rent_amount: formData.rent_amount ? parseFloat(formData.rent_amount) : null,
+        deposit_amount: formData.deposit_amount ? parseFloat(formData.deposit_amount) : null,
+        description: formData.description,
+        amenities: formData.amenities,
+        features: formData.features,
+        is_available: formData.is_available,
+        available_from: formData.available_from || null,
+        landlord_id: formData.landlord_id || (userProfile?.role === 'landlord' ? userProfile.id : null),
+        agent_id: formData.agent_id || (userProfile?.role === 'agent' ? userProfile.id : null)
       };
 
-      console.log('Final property data to submit:', propertyData);
-
       let result;
-      if (propertyToEdit) {
+      if (isEditing) {
         result = await supabase
           .from('properties')
           .update(propertyData)
-          .eq('id', propertyToEdit.id);
+          .eq('id', id);
       } else {
         result = await supabase
           .from('properties')
-          .insert(propertyData);
+          .insert([propertyData]);
       }
 
-      if (result.error) {
-        console.error('Supabase error:', result.error);
-        throw result.error;
-      }
+      if (result.error) throw result.error;
 
       toast({
         title: "Success",
-        description: `Property ${propertyToEdit ? 'updated' : 'created'} successfully`
+        description: `Property ${isEditing ? 'updated' : 'created'} successfully`
       });
 
-      if (onSuccess) onSuccess();
-      if (!propertyToEdit) {
-        form.reset();
-      }
       navigate('/dashboard/property-management/properties');
     } catch (error) {
       console.error('Error saving property:', error);
       toast({
         title: "Error",
-        description: `Failed to ${propertyToEdit ? 'update' : 'create'} property. Please check your permissions and try again.`,
+        description: `Failed to ${isEditing ? 'update' : 'create'} property`,
         variant: "destructive"
       });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  const propertyTypes = [
-    'Apartment',
-    'Bedsitter',
-    'House',
-    'Townhouse',
-    'Villa',
-    'Studio',
-    'Commercial'
-  ];
-
-  const canAssignLandlord = ['admin', 'super_admin'].includes(userProfile?.role || '');
-  const canAssignAgent = ['landlord', 'admin', 'super_admin', 'real_estate_company'].includes(userProfile?.role || '');
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{propertyToEdit ? 'Edit Property' : 'Add New Property'}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Property Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter property name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+    <div className="space-y-4 md:space-y-6 w-full max-w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <Button
+          variant="outline"
+          onClick={() => navigate('/dashboard/property-management/properties')}
+          className="w-full sm:w-auto"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Properties
+        </Button>
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+            {isEditing ? 'Edit Property' : 'Add New Property'}
+          </h1>
+          <p className="text-sm md:text-base text-gray-600">
+            {isEditing ? 'Update property information' : 'Create a new property listing'}
+          </p>
+        </div>
+      </div>
 
-              <FormField
-                control={form.control}
-                name="property_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Property Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select property type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {propertyTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <Card className="w-full max-w-full">
+        <CardHeader>
+          <CardTitle className="text-lg md:text-xl">Property Details</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Basic Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="title">Property Name *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  required
+                  placeholder="Enter property name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="property_type">Property Type *</Label>
+                <Select value={formData.property_type} onValueChange={(value) => handleInputChange('property_type', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select property type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {propertyTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter full address" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Location */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="address">Address *</Label>
+                <Input
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  required
+                  placeholder="Enter property address"
+                />
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>City</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter city" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="city">City *</Label>
+                  <Input
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    required
+                    placeholder="Enter city"
+                  />
+                </div>
 
-              <FormField
-                control={form.control}
-                name="county"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>County</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter county" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <div className="space-y-2">
+                  <Label htmlFor="county">County *</Label>
+                  <Select value={formData.county} onValueChange={(value) => handleInputChange('county', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select county" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {kenyanCounties.map((county) => (
+                        <SelectItem key={county} value={county}>
+                          {county}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
+            {/* Property Details */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <FormField
-                control={form.control}
-                name="bedrooms"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bedrooms</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="0" 
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label htmlFor="bedrooms">Bedrooms</Label>
+                <Input
+                  id="bedrooms"
+                  type="number"
+                  value={formData.bedrooms}
+                  onChange={(e) => handleInputChange('bedrooms', e.target.value)}
+                  placeholder="0"
+                  min="0"
+                />
+              </div>
 
-              <FormField
-                control={form.control}
-                name="bathrooms"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bathrooms</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="0" 
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label htmlFor="bathrooms">Bathrooms</Label>
+                <Input
+                  id="bathrooms"
+                  type="number"
+                  value={formData.bathrooms}
+                  onChange={(e) => handleInputChange('bathrooms', e.target.value)}
+                  placeholder="0"
+                  min="0"
+                />
+              </div>
 
-              <FormField
-                control={form.control}
-                name="rent_amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Monthly Rent (KES)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="0" 
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label htmlFor="rent_amount">Monthly Rent (KES)</Label>
+                <Input
+                  id="rent_amount"
+                  type="number"
+                  value={formData.rent_amount}
+                  onChange={(e) => handleInputChange('rent_amount', e.target.value)}
+                  placeholder="0"
+                  min="0"
+                />
+              </div>
 
-              <FormField
-                control={form.control}
-                name="deposit_amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Deposit (KES)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="0" 
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              <div className="space-y-2">
+                <Label htmlFor="deposit_amount">Deposit (KES)</Label>
+                <Input
+                  id="deposit_amount"
+                  type="number"
+                  value={formData.deposit_amount}
+                  onChange={(e) => handleInputChange('deposit_amount', e.target.value)}
+                  placeholder="0"
+                  min="0"
+                />
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder="Enter property description"
+                rows={4}
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Enter property description..." 
-                      className="min-h-20"
-                      {...field} 
+            {/* Amenities */}
+            <div className="space-y-4">
+              <Label>Amenities</Label>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {availableAmenities.map((amenity) => (
+                  <div key={amenity} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`amenity-${amenity}`}
+                      checked={formData.amenities.includes(amenity)}
+                      onCheckedChange={() => handleAmenityToggle(amenity)}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <Label htmlFor={`amenity-${amenity}`} className="text-sm font-normal">
+                      {amenity}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-            {canAssignLandlord && (
-              <FormField
-                control={form.control}
-                name="landlord_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Assign to Landlord</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select landlord" />
-                        </SelectTrigger>
-                      </FormControl>
+            {/* Features */}
+            <div className="space-y-4">
+              <Label>Features</Label>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {availableFeatures.map((feature) => (
+                  <div key={feature} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`feature-${feature}`}
+                      checked={formData.features.includes(feature)}
+                      onCheckedChange={() => handleFeatureToggle(feature)}
+                    />
+                    <Label htmlFor={`feature-${feature}`} className="text-sm font-normal">
+                      {feature}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Assignment Fields for Admin/Super Admin */}
+            {(userProfile?.role === 'super_admin' || userProfile?.role === 'admin' || userProfile?.role === 'real_estate_company') && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                {landlords.length > 0 && (
+                  <div className="space-y-2">
+                    <Label htmlFor="landlord_id">Assign Landlord</Label>
+                    <Select value={formData.landlord_id} onValueChange={(value) => handleInputChange('landlord_id', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select landlord" />
+                      </SelectTrigger>
                       <SelectContent>
                         {landlords.map((landlord) => (
                           <SelectItem key={landlord.id} value={landlord.id}>
@@ -455,27 +445,17 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
+                  </div>
                 )}
-              />
-            )}
 
-            {canAssignAgent && (
-              <FormField
-                control={form.control}
-                name="agent_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Assign Agent (Optional)</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select agent" />
-                        </SelectTrigger>
-                      </FormControl>
+                {agents.length > 0 && (
+                  <div className="space-y-2">
+                    <Label htmlFor="agent_id">Assign Agent</Label>
+                    <Select value={formData.agent_id} onValueChange={(value) => handleInputChange('agent_id', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select agent" />
+                      </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No Agent</SelectItem>
                         {agents.map((agent) => (
                           <SelectItem key={agent.id} value={agent.id}>
                             {agent.full_name}
@@ -483,33 +463,55 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
+                  </div>
                 )}
-              />
+              </div>
             )}
 
-            <div className="flex gap-4">
-              <Button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="flex-1"
+            {/* Availability */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="is_available"
+                  checked={formData.is_available}
+                  onCheckedChange={(checked) => handleInputChange('is_available', checked)}
+                />
+                <Label htmlFor="is_available">Property is available</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="available_from">Available From</Label>
+                <Input
+                  id="available_from"
+                  type="date"
+                  value={formData.available_from}
+                  onChange={(e) => handleInputChange('available_from', e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-6">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full sm:w-auto"
               >
-                {isSubmitting ? 'Saving...' : (propertyToEdit ? 'Update Property' : 'Create Property')}
+                {loading ? 'Saving...' : (isEditing ? 'Update Property' : 'Create Property')}
               </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => navigate('/dashboard/property-management/properties')}
-                className="flex-1"
+                className="w-full sm:w-auto"
               >
                 Cancel
               </Button>
             </div>
           </form>
-        </Form>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
