@@ -96,8 +96,8 @@ const getNavigationByRole = (role: string): NavigationSection[] => {
         {
           title: 'Property Management',
           items: [
-            { title: 'Properties', href: '/dashboard/property-management/properties', icon: Building },
-            { title: 'Tenants', href: '/dashboard/property-management/tenants', icon: Users },
+            { title: 'Properties', href: '/dashboard/landlord/properties', icon: Building },
+            { title: 'Tenants', href: '/dashboard/landlord/tenants', icon: Users },
             { title: 'Leases', href: '/dashboard/landlord/leases', icon: FileText },
             { title: 'Requests', href: '/dashboard/landlord/requests', icon: Wrench, badge: '5' }
           ],
@@ -127,7 +127,6 @@ const getNavigationByRole = (role: string): NavigationSection[] => {
         {
           title: 'Business',
           items: [
-            { title: 'Properties', href: '/dashboard/property-management/properties', icon: Building },
             { title: 'Listings', href: '/dashboard/agent/listings', icon: Building },
             { title: 'Viewings', href: '/dashboard/agent/viewings', icon: Calendar },
             { title: 'Clients', href: '/dashboard/agent/clients', icon: Users }
@@ -187,7 +186,7 @@ const getNavigationByRole = (role: string): NavigationSection[] => {
           title: 'Business Management',
           items: [
             { title: 'Agents', href: '/dashboard/real_estate_company/agents', icon: Users },
-            { title: 'Properties', href: '/dashboard/property-management/properties', icon: Building },
+            { title: 'Properties', href: '/dashboard/real_estate_company/properties', icon: Building },
             { title: 'Reports', href: '/dashboard/real_estate_company/reports', icon: BarChart3 },
             { title: 'Compliance', href: '/dashboard/real_estate_company/compliance', icon: Shield }
           ],
@@ -287,20 +286,13 @@ const getNavigationByRole = (role: string): NavigationSection[] => {
       return [
         { title: 'Overview', items: [dashboardItem], defaultOpen: true },
         {
-          title: 'Property Management',
-          items: [
-            { title: 'Properties', href: '/dashboard/property-management/properties', icon: Building },
-            { title: 'Tenants', href: '/dashboard/property-management/tenants', icon: Users }
-          ],
-          defaultOpen: true
-        },
-        {
           title: 'Platform Management',
           items: [
             { title: 'Users', href: '/dashboard/admin/users', icon: Users },
             { title: 'KYC Verification', href: '/dashboard/admin/kyc', icon: Shield },
             { title: 'System Config', href: '/dashboard/admin/config', icon: Settings }
-          ]
+          ],
+          defaultOpen: true
         },
         {
           title: 'Analytics & Finance',

@@ -11,7 +11,7 @@ import AddTenantForm from '@/components/property-management/AddTenantForm';
 const PropertyManagement = () => {
   const { userProfile } = useAuth();
 
-  const allowedRoles = ['super_admin', 'admin', 'landlord', 'agent', 'real_estate_company'];
+  const allowedRoles = ['super_admin', 'admin', 'landlord', 'agent'];
 
   if (!allowedRoles.includes(userProfile?.role || '')) {
     return (
@@ -24,13 +24,13 @@ const PropertyManagement = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="properties" replace />} />
-      <Route path="properties" element={<PropertiesManagement />} />
-      <Route path="properties/add" element={<AddPropertyForm />} />
-      <Route path="properties/edit/:id" element={<AddPropertyForm />} />
-      <Route path="tenants" element={<TenantsManagement />} />
-      <Route path="tenants/add" element={<AddTenantForm />} />
-      <Route path="tenants/edit/:id" element={<AddTenantForm />} />
+      <Route path="/" element={<Navigate to="/dashboard/property-management/properties" replace />} />
+      <Route path="/properties" element={<PropertiesManagement />} />
+      <Route path="/properties/add" element={<AddPropertyForm />} />
+      <Route path="/properties/edit/:id" element={<AddPropertyForm />} />
+      <Route path="/tenants" element={<TenantsManagement />} />
+      <Route path="/tenants/add" element={<AddTenantForm />} />
+      <Route path="/tenants/edit/:id" element={<AddTenantForm />} />
     </Routes>
   );
 };

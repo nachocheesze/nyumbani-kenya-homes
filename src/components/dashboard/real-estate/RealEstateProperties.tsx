@@ -3,15 +3,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Building, Plus, MapPin, TrendingUp } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 const RealEstateProperties = () => {
-  const navigate = useNavigate();
-
-  const handleAddProperty = () => {
-    navigate('/dashboard/property-management/properties/add');
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -19,7 +12,7 @@ const RealEstateProperties = () => {
           <h1 className="text-2xl font-bold text-gray-900">Properties</h1>
           <p className="text-gray-600">Manage your property portfolio</p>
         </div>
-        <Button onClick={handleAddProperty} className="flex items-center gap-2">
+        <Button className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
           Add Property
         </Button>
@@ -81,11 +74,7 @@ const RealEstateProperties = () => {
         <CardContent>
           <div className="text-center py-8">
             <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 mb-4">No properties available</p>
-            <Button onClick={handleAddProperty} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add Your First Property
-            </Button>
+            <p className="text-gray-500">No properties available</p>
           </div>
         </CardContent>
       </Card>

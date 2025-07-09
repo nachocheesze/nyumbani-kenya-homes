@@ -3,11 +3,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Building, Plus, Eye, Edit, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 const LandlordProperties = () => {
-  const navigate = useNavigate();
-  
   const properties = [
     {
       id: 1,
@@ -29,10 +26,6 @@ const LandlordProperties = () => {
     }
   ];
 
-  const handleAddProperty = () => {
-    navigate('/dashboard/property-management/properties/add');
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -40,7 +33,7 @@ const LandlordProperties = () => {
           <h1 className="text-2xl font-bold text-gray-900">My Properties</h1>
           <p className="text-gray-600">Manage your rental properties</p>
         </div>
-        <Button onClick={handleAddProperty} className="flex items-center gap-2">
+        <Button className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
           Add Property
         </Button>
