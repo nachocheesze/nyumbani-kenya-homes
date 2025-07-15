@@ -7,7 +7,7 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Resp
 interface ChartWidgetProps {
   title: string;
   description?: string;
-  data: any[];
+  data: Record<string, unknown>[];
   type: 'line' | 'bar' | 'pie';
   dataKey: string;
   xAxisKey?: string;

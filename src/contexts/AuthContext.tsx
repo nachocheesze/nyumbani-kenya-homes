@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,8 +18,8 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, phoneNumber: string, role: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, phoneNumber: string, role: string) => Promise<{ error: AuthError | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -119,7 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       return { error };
-    } catch (error: any) {
+    } catch (error: AuthError) {
       toast({
         title: "Sign Up Error",
         description: error.message,
@@ -150,7 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       return { error };
-    } catch (error: any) {
+    } catch (error: AuthError) {
       toast({
         title: "Sign In Error",
         description: error.message,
@@ -170,7 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Signed Out",
         description: "You have been successfully signed out."
       });
-    } catch (error: any) {
+    } catch (error: AuthError) {
       toast({
         title: "Sign Out Error",
         description: error.message,

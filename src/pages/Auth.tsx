@@ -16,12 +16,7 @@ const Auth = () => {
   const { signUp, signIn, user } = useAuth();
   
   // Determine the active tab based on the current path
-  const getActiveTab = () => {
-    if (location.pathname === '/signup') return 'signup';
-    return 'login';
-  };
-  
-  const [activeTab, setActiveTab] = useState(getActiveTab());
+  const [activeTab, setActiveTab] = useState('login'); // Default to login
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
   const [loading, setLoading] = useState(false);
@@ -35,6 +30,10 @@ const Auth = () => {
   
   // Update active tab when location changes
   useEffect(() => {
+    const getActiveTab = () => {
+      if (location.pathname === '/signup') return 'signup';
+      return 'login';
+    };
     setActiveTab(getActiveTab());
   }, [location.pathname]);
   

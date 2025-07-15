@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,43 +8,42 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useUserRole } from '@/hooks/useUserRole';
+import { useQuery } from '@tanstack/react-query';
 
 const PropertiesManagement = () => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [properties, setProperties] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { role, isSuperAdmin, isLoading: isRoleLoading } = useUserRole();
 
-  useEffect(() => {
-    fetchProperties();
-  }, []);
+  const { data: properties, isLoading, error, refetch } = useQuery({
+    queryKey: ['properties', userProfile?.id, role],
+    queryFn: async () => {
+      if (!userProfile?.id || isRoleLoading) return [];
 
-  const fetchProperties = async () => {
-    try {
       let query = supabase.from('properties').select('*');
-      
-      // Role-based filtering
-      if (userProfile?.role === 'landlord') {
+
+      if (isSuperAdmin || role === 'admin') {
+        // Admins and Super Admins see all properties
+      } else if (role === 'landlord') {
         query = query.eq('landlord_id', userProfile.id);
-      } else if (userProfile?.role === 'agent') {
+      } else if (role === 'agent') {
         query = query.eq('agent_id', userProfile.id);
+      } else if (role === 'real_estate_company') {
+        // Assuming company_id column in properties table and userProfile has company_id
+        // This needs to be confirmed based on userProfile structure or a separate lookup
+        query = query.eq('company_id', userProfile.company_id);
+      } else {
+        return [];
       }
-      
+
       const { data, error } = await query.order('created_at', { ascending: false });
       if (error) throw error;
-      setProperties(data || []);
-    } catch (error) {
-      console.error('Error fetching properties:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load properties",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data || [];
+    },
+    enabled: !!userProfile?.id && !isRoleLoading,
+  });
 
   const handleDelete = async (propertyId: string) => {
     if (!confirm('Are you sure you want to delete this property?')) return;
@@ -58,35 +57,43 @@ const PropertiesManagement = () => {
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Property deleted successfully"
+        title: 'Success',
+        description: 'Property deleted successfully',
       });
-      
-      fetchProperties();
+
+      refetch();
     } catch (error) {
       console.error('Error deleting property:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete property",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to delete property',
+        variant: 'destructive',
       });
     }
   };
 
-  const canManageProperties = ['super_admin', 'admin', 'landlord', 'agent'].includes(userProfile?.role || '');
+  const canManageProperties = ['super_admin', 'admin', 'landlord', 'agent', 'real_estate_company'].includes(role || '');
+
+  if (isRoleLoading || isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-500">Error loading properties: {error.message}</p>
+      </div>
+    );
+  }
 
   if (!canManageProperties) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500">You don't have permission to manage properties.</p>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
       </div>
     );
   }
@@ -106,13 +113,13 @@ const PropertiesManagement = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Properties ({properties.length})</CardTitle>
+          <CardTitle>Properties ({properties?.length || 0})</CardTitle>
         </CardHeader>
         <CardContent>
-          {properties.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500 mb-4">No properties found</p>
-              <Button onClick={() => navigate('/dashboard/property-management/properties/add')}>
+          {properties?.length === 0 ? (
+            <div className="text-center text-muted mt-10">
+              No properties found yet. Click "Add Property" to get started.
+              <Button onClick={() => navigate('/dashboard/property-management/properties/add')} className="mt-4">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Your First Property
               </Button>
@@ -130,7 +137,7 @@ const PropertiesManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {properties.map((property) => (
+                {properties?.map((property) => (
                   <TableRow key={property.id}>
                     <TableCell className="font-medium">{property.title}</TableCell>
                     <TableCell>{property.property_type}</TableCell>
@@ -140,8 +147,8 @@ const PropertiesManagement = () => {
                     </TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${
-                        property.is_available 
-                          ? 'bg-green-100 text-green-800' 
+                        property.is_available
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}>
                         {property.is_available ? 'Available' : 'Occupied'}
@@ -149,23 +156,23 @@ const PropertiesManagement = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => navigate(`/properties/${property.id}`)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => navigate(`/dashboard/property-management/properties/edit/${property.id}`)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        {(userProfile?.role === 'super_admin' || userProfile?.role === 'admin' || property.landlord_id === userProfile?.id) && (
-                          <Button 
-                            variant="outline" 
+                        {(isSuperAdmin || role === 'admin' || property.landlord_id === userProfile?.id) && (
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => handleDelete(property.id)}
                           >

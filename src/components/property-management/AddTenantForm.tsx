@@ -24,9 +24,25 @@ const tenantSchema = z.object({
 
 type TenantFormData = z.infer<typeof tenantSchema>;
 
+interface Tenant {
+  id: string;
+  full_name: string;
+  email: string;
+  phone_number?: string;
+  property_id: string;
+  lease_start_date: string;
+  lease_end_date: string;
+  rent_amount: number;
+}
+
+interface PropertyOption {
+  id: string;
+  title: string;
+}
+
 interface AddTenantFormProps {
   onSuccess?: () => void;
-  editingTenant?: any;
+  editingTenant?: Tenant;
 }
 
 const AddTenantForm: React.FC<AddTenantFormProps> = ({ onSuccess, editingTenant }) => {
@@ -34,7 +50,7 @@ const AddTenantForm: React.FC<AddTenantFormProps> = ({ onSuccess, editingTenant 
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [properties, setProperties] = useState<any[]>([]);
+  const [properties, setProperties] = useState<PropertyOption[]>([]);
 
   const form = useForm<TenantFormData>({
     resolver: zodResolver(tenantSchema),

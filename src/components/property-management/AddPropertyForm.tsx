@@ -35,9 +35,35 @@ const propertySchema = z.object({
 
 type PropertyFormData = z.infer<typeof propertySchema>;
 
+interface Property {
+  id: string;
+  title: string;
+  address: string;
+  city: string;
+  county: string;
+  property_type: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  rent_amount?: number;
+  deposit_amount?: number;
+  description?: string;
+  landlord_id?: string;
+  agent_id?: string;
+  image_urls?: string[];
+  amenities?: string[];
+  is_available: boolean;
+}
+
+interface UserProfile {
+  id: string;
+  full_name: string;
+  role: string;
+  company_id?: string;
+}
+
 interface AddPropertyFormProps {
   onSuccess?: () => void;
-  editingProperty?: any;
+  editingProperty?: Property;
 }
 
 const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingProperty }) => {
@@ -45,8 +71,8 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [landlords, setLandlords] = useState<any[]>([]);
-  const [agents, setAgents] = useState<any[]>([]);
+  const [landlords, setLandlords] = useState<{ id: string; full_name: string; }[]>([]);
+  const [agents, setAgents] = useState<{ id: string; full_name: string; }[]>([]);
 
   useEffect(() => {
     const fetchUsersByRole = async () => {
@@ -129,7 +155,7 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
     setIsSubmitting(true);
     
     try {
-      const propertyData: any = {
+      const propertyData: Partial<Property> = {
         title: data.title,
         address: data.address,
         city: data.city,
