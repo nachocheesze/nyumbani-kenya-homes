@@ -11,6 +11,9 @@ import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
 import Dashboard from "./pages/Dashboard";
 import PropertyForm from "./pages/PropertyForm";
+import PropertyManagement from "./components/property-management/PropertiesManagement";
+import AddPropertyForm from "./components/property-management/AddPropertyForm";
+import AddTenantForm from "./components/property-management/AddTenantForm";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
@@ -33,7 +36,12 @@ const AppContent = () => {
             </ProtectedRoute>} />
         <Route path="/dashboard/*" element={<ProtectedRoute>
               <DashboardLayout>
-                <Dashboard />
+                <Routes>
+                  <Route index element={<Dashboard />} />
+                  <Route path="property-management/properties/add" element={<AddPropertyForm />} />
+                  <Route path="property-management/tenants/add" element={<AddTenantForm />} />
+                  <Route path="*" element={<Dashboard />} />
+                </Routes>
               </DashboardLayout>
             </ProtectedRoute>} />
         <Route path="/login" element={<Auth />} />
