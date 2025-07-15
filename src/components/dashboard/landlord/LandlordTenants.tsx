@@ -35,10 +35,12 @@ const LandlordTenants = () => {
           <h1 className="text-2xl font-bold text-gray-900">Tenants</h1>
           <p className="text-gray-600">Manage your tenant relationships</p>
         </div>
-        <Button className="flex items-center gap-2">
-          <Users className="h-4 w-4" />
-          Add Tenant
-        </Button>
+        <Link to="/dashboard/property-management/tenants/add">
+          <Button className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Add Tenant
+          </Button>
+        </Link>
       </div>
 
       {/* Stats Cards */}

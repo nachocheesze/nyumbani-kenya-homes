@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,10 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
 
 const propertySchema = z.object({
   title: z.string().min(1, 'Property name is required'),
@@ -26,7 +28,9 @@ const propertySchema = z.object({
   deposit_amount: z.number().min(0).optional(),
   description: z.string().optional(),
   landlord_id: z.string().optional(),
-  agent_id: z.string().optional()
+  agent_id: z.string().optional(),
+  image_files: z.array(z.instanceof(File)).optional(),
+  amenities: z.array(z.string()).optional()
 });
 
 type PropertyFormData = z.infer<typeof propertySchema>;
@@ -41,43 +45,91 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [landlords, setLandlords] = useState<any[]>([]);
+  const [agents, setAgents] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchUsersByRole = async () => {
+      // Fetch Landlords
+      const { data: landlordsData, error: landlordsError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('role', 'landlord');
+      if (landlordsError) {
+        console.error('Error fetching landlords:', landlordsError);
+        toast({
+          title: "Error",
+          description: "Failed to load landlords.",
+          variant: "destructive"
+        });
+      } else {
+        setLandlords(landlordsData || []);
+      }
+
+      // Fetch Agents
+      const { data: agentsData, error: agentsError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('role', 'agent');
+      if (agentsError) {
+        console.error('Error fetching agents:', agentsError);
+        toast({
+          title: "Error",
+          description: "Failed to load agents.",
+          variant: "destructive"
+        });
+      } else {
+        setAgents(agentsData || []);
+      }
+    };
+
+    if (userProfile?.role === 'admin' || userProfile?.role === 'real_estate_company') {
+      fetchUsersByRole();
+    }
+  }, [userProfile, toast]);
 
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
-    defaultValues: editingProperty ? {
-      title: editingProperty.title || '',
-      address: editingProperty.address || '',
-      city: editingProperty.city || '',
-      county: editingProperty.county || '',
-      property_type: editingProperty.property_type || '',
-      bedrooms: editingProperty.bedrooms || 0,
-      bathrooms: editingProperty.bathrooms || 0,
-      rent_amount: editingProperty.rent_amount || 0,
-      deposit_amount: editingProperty.deposit_amount || 0,
-      description: editingProperty.description || '',
-      landlord_id: editingProperty.landlord_id || '',
-      agent_id: editingProperty.agent_id || ''
-    } : {
-      title: '',
-      address: '',
-      city: '',
-      county: '',
-      property_type: '',
-      bedrooms: 0,
-      bathrooms: 0,
-      rent_amount: 0,
-      deposit_amount: 0,
-      description: '',
-      landlord_id: '',
-      agent_id: ''
-    }
+    defaultValues: editingProperty
+      ? {
+          title: editingProperty.title || '',
+          address: editingProperty.address || '',
+          city: editingProperty.city || '',
+          county: editingProperty.county || '',
+          property_type: editingProperty.property_type || '',
+          bedrooms: editingProperty.bedrooms || 0,
+          bathrooms: editingProperty.bathrooms || 0,
+          rent_amount: editingProperty.rent_amount || 0,
+          deposit_amount: editingProperty.deposit_amount || 0,
+          description: editingProperty.description || '',
+          landlord_id: editingProperty.landlord_id || (userProfile?.role === 'landlord' ? userProfile.id : ''),
+          agent_id: editingProperty.agent_id || '',
+          amenities: editingProperty.amenities || [],
+          image_files: []
+        }
+      : {
+          title: '',
+          address: '',
+          city: '',
+          county: '',
+          property_type: '',
+          bedrooms: 0,
+          bathrooms: 0,
+          rent_amount: 0,
+          deposit_amount: 0,
+          description: '',
+          landlord_id: userProfile?.role === 'landlord' ? userProfile.id : '',
+          agent_id: '',
+          amenities: [],
+          image_files: []
+        }
   });
 
   const onSubmit = async (data: PropertyFormData) => {
     setIsSubmitting(true);
     
     try {
-      const propertyData = {
+      const propertyData: any = {
         title: data.title,
         address: data.address,
         city: data.city,
@@ -90,8 +142,32 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
         description: data.description || '',
         landlord_id: userProfile?.role === 'landlord' ? userProfile.id : data.landlord_id,
         agent_id: data.agent_id || null,
-        is_available: true
+        is_available: true,
+        amenities: data.amenities || []
       };
+
+      const imageUrls: string[] = [];
+      if (data.image_files && data.image_files.length > 0) {
+        for (const file of data.image_files) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${uuidv4()}.${fileExt}`;
+          const filePath = `property_images/${fileName}`;
+          const { error: uploadError } = await supabase.storage
+            .from('property_images')
+            .upload(filePath, file);
+
+          if (uploadError) throw uploadError;
+
+          const { data: publicUrlData } = supabase.storage
+            .from('property_images')
+            .getPublicUrl(filePath);
+          
+          if (publicUrlData) {
+            imageUrls.push(publicUrlData.publicUrl);
+          }
+        }
+        propertyData.image_urls = imageUrls;
+      }
 
       let result;
       if (editingProperty) {
@@ -137,6 +213,23 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
     'Villa',
     'Studio',
     'Commercial'
+  ];
+
+  const amenitiesOptions = [
+    'Parking',
+    'Swimming Pool',
+    'Gym',
+    'Balcony',
+    'Garden',
+    'Security',
+    'Pet Friendly',
+    'Furnished',
+    'Dishwasher',
+    'Washer/Dryer',
+    'Air Conditioning',
+    'Heating',
+    'Internet',
+    'Cable TV'
   ];
 
   return (
@@ -321,6 +414,125 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onSuccess, editingPro
                       placeholder="Enter property description..." 
                       className="min-h-20"
                       {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            { (userProfile?.role === 'admin' || userProfile?.role === 'real_estate_company') && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="landlord_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Assign Landlord</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a landlord" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {landlords.map((landlord) => (
+                            <SelectItem key={landlord.id} value={landlord.id}>
+                              {landlord.full_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="agent_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Assign Agent</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select an agent" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {agents.map((agent) => (
+                            <SelectItem key={agent.id} value={agent.id}>
+                              {agent.full_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            <FormField
+              control={form.control}
+              name="amenities"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Amenities</FormLabel>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                    {amenitiesOptions.map((item) => (
+                      <FormField
+                        key={item}
+                        control={form.control}
+                        name="amenities"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={item}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(item)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...(field.value || []), item])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) => value !== item
+                                          )
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {item}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="image_files"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Property Images</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="file" 
+                      multiple 
+                      accept="image/*"
+                      onChange={(e) => field.onChange(Array.from(e.target.files || []))}
                     />
                   </FormControl>
                   <FormMessage />
