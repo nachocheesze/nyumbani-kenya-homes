@@ -1,73 +1,85 @@
-# Welcome to your Lovable project
+# 🏠 Nyumbani - Smart African Property Management Platform
 
-## Project info
+**Nyumbani** is a full-featured real estate and property management web platform designed for the African market, starting with Kenya. Inspired by Zillow, it empowers landlords, tenants, agents, and real estate companies to manage properties, leases, payments, and services with ease.
 
-**URL**: https://lovable.dev/projects/f1fa7caf-38df-466f-bbe7-ea1ce7c4e182
+---
 
-## How can I edit this code?
+## 🚀 Features
 
-There are several ways of editing your application.
+### 🔑 Authentication & User Roles
+- Supabase-auth with email/password
+- Role-based access: `tenant`, `landlord`, `agent`, `real_estate_company`, `admin`, `super_admin`, `caretaker`, `developer`, `investor`, `short_term_host`, `service_provider`
+- Auto-profile creation with secure protected routes
 
-**Use Lovable**
+### 🏠 Property Management
+- Add, edit, and manage property listings
+- Assign agents to properties
+- Location mapping and property amenities
+- Advanced property search and comparison (planned)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f1fa7caf-38df-466f-bbe7-ea1ce7c4e182) and start prompting.
+### 👤 Tenant Management
+- Add and manage tenants
+- View rental history, lease terms, and payment status
+- Move-in/out checklists and profile verification
 
-Changes made via Lovable will be committed automatically to this repo.
+### 💳 Wallet & Payments
+- Integrated wallet system (via Paystack)
+- Rent deposits and withdrawals
+- Micro-loans and rent advances (bank partnerships ready)
+- Landlord/agent payout tracking
 
-**Use your preferred IDE**
+### 🛠 Maintenance & Services
+- Maintenance ticketing system for tenants
+- Service provider marketplace (plumbers, electricians, etc.)
+- Smart home upgrade support
+- Utility outage reporting and WiFi comparison
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 📊 Dashboards
+- Fully role-based dashboards
+- Overview and actions tailored per role
+- Admin/Super Admin can manage users, roles, and the platform
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 🏢 Real Estate Company Support
+- Companies can manage agents and properties
+- Assign properties to agents
+- Integrated team operations
 
-Follow these steps:
+### 📂 Additional Tools (Planned/Active)
+- Insurance partnerships integration
+- Developer-landlord matching
+- Receipt and report generation (for caretakers)
+- Messaging, document management, and notifications
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🛠 Tech Stack
 
-# Step 3: Install the necessary dependencies.
-npm i
+- **Frontend:** React + Vite + TypeScript + Tailwind CSS
+- **Backend:** Supabase (Database + Auth + RLS Policies)
+- **Payments:** Paystack
+- **Hosting:** Vercel (recommended) or any modern frontend platform
+- **State Management:** Supabase hooks + React Context
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+---
+
+## 🔐 Roles and Access (Sample)
+
+| Role               | Can Add Property | Can Add Tenant | Special Features                             |
+|--------------------|------------------|----------------|-----------------------------------------------|
+| Tenant             | ❌               | ❌             | Wallet, payment history, maintenance          |
+| Landlord           | ✅               | ✅             | Properties, tenants, lease management         |
+| Agent              | ✅ (if assigned) | ✅             | Assigned properties only                      |
+| Real Estate Company| ✅               | ✅             | Manage agents, assign properties              |
+| Admin              | ✅               | ✅             | Manage users, full access                     |
+| Super Admin        | ✅               | ✅             | Platform-wide control                         |
+| Caretaker          | ❌               | ❌             | View water usage, manage waste, receipts      |
+
+---
+
+## 🧪 Running Locally
+
+```bash
+git clone https://github.com/yourusername/nyumbani.git
+cd nyumbani
+npm install
 npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/f1fa7caf-38df-466f-bbe7-ea1ce7c4e182) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
