@@ -7,32 +7,28 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const tenantSchema = z.object({
   full_name: z.string().min(1, 'Tenant name is required'),
   email: z.string().email('Invalid email address').min(1, 'Email is required'),
   phone_number: z.string().optional(),
   property_id: z.string().min(1, 'Assigned property is required'),
-  lease_start_date: z.string().min(1, 'Lease start date is required'),
+  move_in_date: z.string().min(1, 'Move-in date is required'),
   lease_end_date: z.string().min(1, 'Lease end date is required'),
-  rent_amount: z.number().min(0, 'Rent amount must be a positive number'),
+  rent_amount: z.coerce.number().min(0, 'Rent amount must be a positive number'),
+  deposit_paid: z.coerce.number().min(0, 'Deposit paid must be a positive number').optional(),
+  status: z.enum(['active', 'inactive', 'terminated']).default('active'),
 });
 
-type TenantFormData = z.infer<typeof tenantSchema>;
+export type TenantFormValues = z.infer<typeof tenantSchema>;
 
-interface Tenant {
-  id: string;
-  full_name: string;
-  email: string;
-  phone_number?: string;
-  property_id: string;
-  lease_start_date: string;
-  lease_end_date: string;
-  rent_amount: number;
+interface TenantFormProps {
+  editingTenant?: TenantFormValues & { id?: string };
+  onSave: (data: TenantFormValues) => void;
+  onCancel: () => void;
+  isSubmitting: boolean;
 }
 
 interface PropertyOption {
@@ -40,36 +36,32 @@ interface PropertyOption {
   title: string;
 }
 
-interface AddTenantFormProps {
-  onSuccess?: () => void;
-  editingTenant?: Tenant;
-}
-
-const AddTenantForm: React.FC<AddTenantFormProps> = ({ onSuccess, editingTenant }) => {
+export const TenantForm: React.FC<TenantFormProps> = ({ editingTenant, onSave, onCancel, isSubmitting }) => {
   const { userProfile } = useAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [properties, setProperties] = useState<PropertyOption[]>([]);
 
-  const form = useForm<TenantFormData>({
+  const form = useForm<TenantFormValues>({
     resolver: zodResolver(tenantSchema),
     defaultValues: editingTenant ? {
       full_name: editingTenant.full_name || '',
       email: editingTenant.email || '',
       phone_number: editingTenant.phone_number || '',
       property_id: editingTenant.property_id || '',
-      lease_start_date: editingTenant.lease_start_date || '',
+      move_in_date: editingTenant.move_in_date || '',
       lease_end_date: editingTenant.lease_end_date || '',
       rent_amount: editingTenant.rent_amount || 0,
+      deposit_paid: editingTenant.deposit_paid || 0,
+      status: editingTenant.status || 'active',
     } : {
       full_name: '',
       email: '',
       phone_number: '',
       property_id: '',
-      lease_start_date: '',
+      move_in_date: '',
       lease_end_date: '',
       rent_amount: 0,
+      deposit_paid: 0,
+      status: 'active',
     }
   });
 
@@ -89,69 +81,16 @@ const AddTenantForm: React.FC<AddTenantFormProps> = ({ onSuccess, editingTenant 
 
       if (error) {
         console.error('Error fetching properties:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load properties.",
-          variant: "destructive"
-        });
       } else {
         setProperties(data || []);
       }
     };
 
     fetchProperties();
-  }, [userProfile, toast]);
+  }, [userProfile]);
 
-  const onSubmit = async (data: TenantFormData) => {
-    setIsSubmitting(true);
-    
-    try {
-      const tenantData = {
-        user_id: userProfile?.id, // Assuming the tenant is also a user in the system
-        property_id: data.property_id,
-        landlord_id: userProfile?.role === 'landlord' ? userProfile.id : null, // Assign landlord based on role
-        move_in_date: data.lease_start_date,
-        lease_end_date: data.lease_end_date,
-        rent_amount: data.rent_amount,
-        full_name: data.full_name,
-        email: data.email,
-        phone_number: data.phone_number,
-      };
-
-      let result;
-      if (editingTenant) {
-        result = await supabase
-          .from('tenants')
-          .update(tenantData)
-          .eq('id', editingTenant.id);
-      } else {
-        result = await supabase
-          .from('tenants')
-          .insert(tenantData);
-      }
-
-      if (result.error) throw result.error;
-
-      toast({
-        title: "Success",
-        description: `Tenant ${editingTenant ? 'updated' : 'added'} successfully`
-      });
-
-      if (onSuccess) onSuccess();
-      if (!editingTenant) {
-        form.reset();
-        navigate('/dashboard/property-management/tenants');
-      }
-    } catch (error) {
-      console.error('Error saving tenant:', error);
-      toast({
-        title: "Error",
-        description: `Failed to ${editingTenant ? 'update' : 'add'} tenant`,
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const onSubmit = (data: TenantFormValues) => {
+    onSave(data);
   };
 
   return (
@@ -232,10 +171,10 @@ const AddTenantForm: React.FC<AddTenantFormProps> = ({ onSuccess, editingTenant 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="lease_start_date"
+                name="move_in_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Lease Start Date</FormLabel>
+                    <FormLabel>Move-in Date</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -270,9 +209,49 @@ const AddTenantForm: React.FC<AddTenantFormProps> = ({ onSuccess, editingTenant 
                       type="number" 
                       placeholder="0" 
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="deposit_paid"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Deposit Paid (KES)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      placeholder="0" 
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="terminated">Terminated</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -289,7 +268,7 @@ const AddTenantForm: React.FC<AddTenantFormProps> = ({ onSuccess, editingTenant 
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => navigate('/dashboard/property-management/tenants')}
+                onClick={onCancel}
                 className="flex-1"
               >
                 Cancel
@@ -301,5 +280,3 @@ const AddTenantForm: React.FC<AddTenantFormProps> = ({ onSuccess, editingTenant 
     </Card>
   );
 };
-
-export default AddTenantForm;
