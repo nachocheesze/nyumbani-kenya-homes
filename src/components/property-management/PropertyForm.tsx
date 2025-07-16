@@ -11,42 +11,42 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Switch } from "@/components/ui/switch";
 
+// Updated Zod schema to match the database
 const propertyFormSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  title: z.string().min(2, { message: "Title must be at least 2 characters." }),
   description: z.string().min(10, { message: "Description must be at least 10 characters." }).optional(),
   address: z.string().min(5, { message: "Address must be at least 5 characters." }),
   city: z.string().min(2, { message: "City must be at least 2 characters." }),
-  state: z.string().min(2, { message: "State must be at least 2 characters." }),
-  zip_code: z.string().min(5, { message: "Zip code must be at least 5 characters." }),
-  price: z.preprocess(
+  county: z.string().min(2, { message: "County must be at least 2 characters." }),
+  property_type: z.enum(["apartment", "house", "commercial", "land"]),
+  
+  rent_amount: z.preprocess(
       (a) => parseFloat(z.string().parse(a)),
-      z.number().positive({ message: "Price must be a positive number." })
+      z.number().positive({ message: "Rent must be a positive number." })
   ),
+  deposit_amount: z.preprocess(
+      (a) => parseFloat(z.string().parse(a)),
+      z.number().positive().nullable().optional()
+  ),
+  
   bedrooms: z.preprocess(
       (a) => parseInt(z.string().parse(a), 10),
       z.number().int().min(0, { message: "Bedrooms must be a non-negative number." })
   ),
   bathrooms: z.preprocess(
-      (a) => parseFloat(z.string().parse(a)),
-      z.number().min(0, { message: "Bathrooms must be a non-negative number." })
-  ),
-  square_feet: z.preprocess(
       (a) => parseInt(z.string().parse(a), 10),
-      z.number().int().positive({ message: "Square feet must be a positive number." })
+      z.number().int().min(0, { message: "Bathrooms must be a non-negative number." })
   ),
-  property_type: z.enum(["apartment", "house", "condo", "townhouse", "land"]),
-  status: z.enum(["available", "sold", "pending"]),
-  year_built: z.preprocess(
-      (a) => (a === "" || a === undefined ? null : parseInt(z.string().parse(a), 10)),
-      z.number().int().min(1800).max(new Date().getFullYear()).nullable().optional()
-  ),
-  lot_size: z.preprocess(
-      (a) => (a === "" || a === undefined ? null : parseFloat(z.string().parse(a))),
-      z.number().positive().nullable().optional()
-  ),
-  image_urls: z.array(z.string().url()).optional().default([]),
+
+  available_from: z.string().optional(),
+  is_available: z.boolean().default(true),
+
+  features: z.array(z.string()).optional().default([]),
   amenities: z.array(z.string()).optional().default([]),
+  images: z.array(z.string().url()).optional().default([]),
+
   landlord_id: z.string().uuid().optional(),
   agent_id: z.string().uuid().optional(),
 });
@@ -62,70 +62,63 @@ interface PropertyFormProps {
 
 export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }: PropertyFormProps) {
   const { toast } = useToast();
-  const [imageUrls, setImageUrls] = useState<string[]>(editingProperty?.image_urls || []);
+  const [images, setImages] = useState<string[]>(editingProperty?.images || []);
   const [amenities, setAmenities] = useState<string[]>(editingProperty?.amenities || []);
   const [newAmenity, setNewAmenity] = useState("");
+  const [features, setFeatures] = useState<string[]>(editingProperty?.features || []);
+  const [newFeature, setNewFeature] = useState("");
 
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(propertyFormSchema),
     defaultValues: {
-      name: "",
+      title: "",
       description: "",
       address: "",
       city: "",
-      state: "",
-      zip_code: "",
-      price: 0,
-      bedrooms: 0,
-      bathrooms: 0,
-      square_feet: 0,
+      county: "",
       property_type: "apartment",
-      status: "available",
-      year_built: undefined,
-      lot_size: undefined,
-      landlord_id: undefined,
-      agent_id: undefined,
+      rent_amount: 0,
+      is_available: true,
       ...editingProperty,
-      image_urls: editingProperty?.image_urls || [],
+      images: editingProperty?.images || [],
       amenities: editingProperty?.amenities || [],
+      features: editingProperty?.features || [],
     },
   });
 
   useEffect(() => {
     form.reset({
-        name: "",
-        description: "",
-        address: "",
-        city: "",
-        state: "",
-        zip_code: "",
-        price: 0,
-        bedrooms: 0,
-        bathrooms: 0,
-        square_feet: 0,
-        property_type: "apartment",
-        status: "available",
-        year_built: undefined,
-        lot_size: undefined,
-        landlord_id: undefined,
-        agent_id: undefined,
-        ...editingProperty,
-        image_urls: editingProperty?.image_urls || [],
-        amenities: editingProperty?.amenities || [],
+      title: "",
+      description: "",
+      address: "",
+      city: "",
+      county: "",
+      property_type: "apartment",
+      rent_amount: 0,
+      is_available: true,
+      ...editingProperty,
+      images: editingProperty?.images || [],
+      amenities: editingProperty?.amenities || [],
+      features: editingProperty?.features || [],
     });
-    setImageUrls(editingProperty?.image_urls || []);
+    setImages(editingProperty?.images || []);
     setAmenities(editingProperty?.amenities || []);
+    setFeatures(editingProperty?.features || []);
   }, [editingProperty, form]);
-
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const fileName = `${Date.now()}-${file.name}`;
-    const { data, error } = await supabase.storage
-      .from("property-images")
-      .upload(fileName, file);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({ title: "Upload Failed", description: "You must be logged in to upload images.", variant: "destructive" });
+      return;
+    }
+    form.setValue('landlord_id', user.id);
+
+    const fileName = `${user.id}/${Date.now()}-${file.name}`;
+    const { data, error } = await supabase.storage.from("property-images").upload(fileName, file, { upsert: true });
 
     if (error) {
       toast({ title: "Image Upload Failed", description: error.message, variant: "destructive" });
@@ -133,19 +126,18 @@ export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }
     }
 
     const { data: { publicUrl } } = supabase.storage.from("property-images").getPublicUrl(data.path);
-    
     if (publicUrl) {
-        const updatedImageUrls = [...imageUrls, publicUrl];
-        setImageUrls(updatedImageUrls);
-        form.setValue("image_urls", updatedImageUrls, { shouldValidate: true });
-        toast({ title: "Image Uploaded", description: "The image has been successfully uploaded." });
+      const updatedImages = [...images, publicUrl];
+      setImages(updatedImages);
+      form.setValue("images", updatedImages, { shouldValidate: true });
+      toast({ title: "Image Uploaded", description: "The image has been successfully uploaded." });
     }
   };
 
   const removeImage = (url: string) => {
-    const updatedImageUrls = imageUrls.filter((u) => u !== url);
-    setImageUrls(updatedImageUrls);
-    form.setValue("image_urls", updatedImageUrls, { shouldValidate: true });
+    const updatedImages = images.filter((u) => u !== url);
+    setImages(updatedImages);
+    form.setValue("images", updatedImages, { shouldValidate: true });
   };
 
   const addAmenity = () => {
@@ -163,6 +155,21 @@ export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }
     form.setValue("amenities", updatedAmenities, { shouldValidate: true });
   };
 
+  const addFeature = () => {
+    if (newFeature.trim() !== "" && !features.includes(newFeature.trim())) {
+      const updatedFeatures = [...features, newFeature.trim()];
+      setFeatures(updatedFeatures);
+      form.setValue("features", updatedFeatures, { shouldValidate: true });
+      setNewFeature("");
+    }
+  };
+
+  const removeFeature = (feature: string) => {
+    const updatedFeatures = features.filter((f) => f !== feature);
+    setFeatures(updatedFeatures);
+    form.setValue("features", updatedFeatures, { shouldValidate: true });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -172,9 +179,9 @@ export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSave)} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <FormField control={form.control} name="name" render={({ field }) => (
+              <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Property Name</FormLabel>
+                  <FormLabel>Property Title</FormLabel>
                   <FormControl><Input placeholder="e.g., The Grand Villa" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
@@ -193,24 +200,24 @@ export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }
                   <FormMessage />
                 </FormItem>
               )} />
-              <FormField control={form.control} name="state" render={({ field }) => (
+              <FormField control={form.control} name="county" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>State / County</FormLabel>
+                  <FormLabel>County</FormLabel>
                   <FormControl><Input placeholder="e.g., Nairobi County" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
-               <FormField control={form.control} name="zip_code" render={({ field }) => (
+              <FormField control={form.control} name="rent_amount" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Zip Code</FormLabel>
-                  <FormControl><Input placeholder="e.g., 00100" {...field} /></FormControl>
+                  <FormLabel>Rent Amount (KES)</FormLabel>
+                  <FormControl><Input type="number" placeholder="e.g., 150000" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
-              <FormField control={form.control} name="price" render={({ field }) => (
+              <FormField control={form.control} name="deposit_amount" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Price (KES)</FormLabel>
-                  <FormControl><Input type="number" placeholder="e.g., 15000000" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} /></FormControl>
+                  <FormLabel>Deposit Amount (KES)</FormLabel>
+                  <FormControl><Input type="number" placeholder="e.g., 150000" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -222,23 +229,8 @@ export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }
                     <SelectContent>
                       <SelectItem value="apartment">Apartment</SelectItem>
                       <SelectItem value="house">House</SelectItem>
-                      <SelectItem value="condo">Condo</SelectItem>
-                      <SelectItem value="townhouse">Townhouse</SelectItem>
+                      <SelectItem value="commercial">Commercial</SelectItem>
                       <SelectItem value="land">Land</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <FormField control={form.control} name="status" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl><SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger></FormControl>
-                    <SelectContent>
-                      <SelectItem value="available">Available</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="sold">Sold</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -254,22 +246,26 @@ export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }
               <FormField control={form.control} name="bathrooms" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Bathrooms</FormLabel>
-                  <FormControl><Input type="number" placeholder="e.g., 3" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} /></FormControl>
+                  <FormControl><Input type="number" placeholder="e.g., 3" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
-              <FormField control={form.control} name="square_feet" render={({ field }) => (
+              <FormField control={form.control} name="available_from" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Square Feet</FormLabel>
-                  <FormControl><Input type="number" placeholder="e.g., 2500" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl>
+                  <FormLabel>Available From</FormLabel>
+                  <FormControl><Input type="date" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
-              <FormField control={form.control} name="year_built" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Year Built</FormLabel>
-                  <FormControl><Input type="number" placeholder="e.g., 2010" {...field} onChange={e => field.onChange(e.target.value === '' ? null : parseInt(e.target.value, 10))} /></FormControl>
-                  <FormMessage />
+              <FormField control={form.control} name="is_available" render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Available for Rent</FormLabel>
+                    <p className="text-sm text-muted-foreground">Mark this property as currently available.</p>
+                  </div>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
                 </FormItem>
               )} />
             </div>
@@ -281,23 +277,22 @@ export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }
               </FormItem>
             )} />
 
-            {/* Image Upload Section */}
+            {/* Features Section */}
             <FormItem>
-              <FormLabel>Images</FormLabel>
-              <FormControl>
-                <Input type="file" accept="image/*" onChange={handleImageUpload} />
-              </FormControl>
-              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                {imageUrls.map((url) => (
-                  <div key={url} className="relative">
-                    <img src={url} alt="Property" className="w-full h-32 object-cover rounded-md" />
-                    <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeImage(url)}>
-                      <X className="h-4 w-4" />
-                    </Button>
+              <FormLabel>Features</FormLabel>
+              <div className="flex items-center gap-2">
+                <Input value={newFeature} onChange={(e) => setNewFeature(e.target.value)} placeholder="e.g., Balcony" />
+                <Button type="button" onClick={addFeature}>Add</Button>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {features.map((feature) => (
+                  <div key={feature} className="flex items-center gap-2 bg-secondary text-secondary-foreground rounded-full px-3 py-1 text-sm">
+                    {feature}
+                    <button type="button" onClick={() => removeFeature(feature)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
                   </div>
                 ))}
               </div>
-              <FormMessage>{form.formState.errors.image_urls?.message}</FormMessage>
+              <FormMessage>{form.formState.errors.features?.message}</FormMessage>
             </FormItem>
 
             {/* Amenities Section */}
@@ -311,13 +306,28 @@ export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }
                 {amenities.map((amenity) => (
                   <div key={amenity} className="flex items-center gap-2 bg-secondary text-secondary-foreground rounded-full px-3 py-1 text-sm">
                     {amenity}
-                    <button type="button" onClick={() => removeAmenity(amenity)} className="text-muted-foreground hover:text-foreground">
-                      <X className="h-4 w-4" />
-                    </button>
+                    <button type="button" onClick={() => removeAmenity(amenity)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
                   </div>
                 ))}
               </div>
               <FormMessage>{form.formState.errors.amenities?.message}</FormMessage>
+            </FormItem>
+
+            {/* Image Upload Section */}
+            <FormItem>
+              <FormLabel>Images</FormLabel>
+              <FormControl>
+                <Input type="file" accept="image/*" onChange={handleImageUpload} />
+              </FormControl>
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                {images.map((url) => (
+                  <div key={url} className="relative">
+                    <img src={url} alt="Property" className="w-full h-32 object-cover rounded-md" />
+                    <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeImage(url)}><X className="h-4 w-4" /></Button>
+                  </div>
+                ))}
+              </div>
+              <FormMessage>{form.formState.errors.images?.message}</FormMessage>
             </FormItem>
 
             <div className="flex justify-end gap-4">

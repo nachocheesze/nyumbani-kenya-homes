@@ -128,7 +128,7 @@ const PropertiesManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Property Name</TableHead>
+                  <TableHead>Property Title</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Rent</TableHead>

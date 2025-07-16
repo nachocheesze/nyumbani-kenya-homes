@@ -16,7 +16,7 @@ export function PropertyFormPage() {
     queryKey: ["properties", id],
     queryFn: async () => {
       if (!id) return null;
-      const { data, error } = await supabase.from("properties").select("*").eq("id", id).single();
+      const { data, error } = await supabase.from("properties").select("*, features:features, amenities:amenities, images:images").eq("id", id).single();
       if (error) throw new Error(error.message);
       return data;
     },
@@ -25,14 +25,27 @@ export function PropertyFormPage() {
 
   const mutation = useMutation({
     mutationFn: async (formData: PropertyFormValues) => {
-        const { data, error } = id
-            ? await supabase.from("properties").update({ ...formData, landlord_id: user?.id }).eq("id", id).select().single()
-            : await supabase.from("properties").insert({ ...formData, landlord_id: user?.id }).select().single();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("You must be logged in to save a property");
+      }
 
-        if (error) {
-            throw new Error(error.message);
-        }
-        return data;
+      const propertyData = {
+        ...formData,
+        id: id, // Ensure id is passed for upsert
+        landlord_id: user.id
+      };
+
+      const { data, error } = await supabase
+        .from('properties')
+        .upsert(propertyData)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["properties"] });
