@@ -4,6 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { PropertyForm, PropertyFormValues } from "@/components/property-management/PropertyForm";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function PropertyFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -68,17 +72,43 @@ export function PropertyFormPage() {
   };
 
   if (isLoadingProperty && id) {
-    return <div>Loading...</div>;
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-emerald-600"></div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (
-    <div className="container mx-auto py-10">
-      <PropertyForm 
-        editingProperty={editingProperty ?? undefined}
-        onSave={handleSave} 
-        onCancel={handleCancel}
-        isSubmitting={mutation.isLoading}
-      />
-    </div>
+    <DashboardLayout>
+      <div className={cn("space-y-6", "p-6 bg-white rounded-lg shadow-md")}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleCancel}
+              className="h-8 w-8"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {id ? "Edit Property" : "Add New Property"}
+            </h1>
+          </div>
+          <nav className="text-sm text-gray-500">
+            Dashboard / Properties / {id ? "Edit Property" : "Add Property"}
+          </nav>
+        </div>
+        <PropertyForm 
+          editingProperty={editingProperty ?? undefined}
+          onSave={handleSave} 
+          onCancel={handleCancel}
+          isSubmitting={mutation.isLoading}
+        />
+      </div>
+    </DashboardLayout>
   );
 }
