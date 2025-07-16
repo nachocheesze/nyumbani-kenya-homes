@@ -23,8 +23,8 @@ export function PropertyFormPage() {
     enabled: !!id,
   });
 
-  const mutation = useMutation(
-    async (formData: PropertyFormValues) => {
+  const mutation = useMutation({
+    mutationFn: async (formData: PropertyFormValues) => {
         const { data, error } = id
             ? await supabase.from("properties").update({ ...formData, landlord_id: user?.id }).eq("id", id).select().single()
             : await supabase.from("properties").insert({ ...formData, landlord_id: user?.id }).select().single();
@@ -34,17 +34,17 @@ export function PropertyFormPage() {
         }
         return data;
     },
-    {
-      onSuccess: (data) => {
-        queryClient.invalidateQueries(["properties"]);
-        toast({ title: `Property ${id ? 'updated' : 'created'} successfully!` });
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
+      toast({ title: `Property ${id ? 'updated' : 'created'} successfully!` });
+      if (data) {
         navigate(`/properties/${data.id}`);
-      },
-      onError: (error: Error) => {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
-      },
-    }
-  );
+      }
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
 
   const handleSave = (data: PropertyFormValues) => {
     mutation.mutate(data);
