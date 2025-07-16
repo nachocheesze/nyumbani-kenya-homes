@@ -5,7 +5,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import PropertiesManagement from '@/components/property-management/PropertiesManagement';
 import TenantsManagement from '@/components/property-management/TenantsManagement';
-import AddPropertyForm from '@/components/property-management/AddPropertyForm';
 import AddTenantForm from '@/components/property-management/AddTenantForm';
 
 const PropertyManagement = () => {
@@ -26,8 +25,6 @@ const PropertyManagement = () => {
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard/property-management/properties" replace />} />
       <Route path="/properties" element={<PropertiesManagement />} />
-      <Route path="/properties/add" element={<AddPropertyForm />} />
-      <Route path="/properties/edit/:id" element={<AddPropertyForm />} />
       <Route path="/tenants" element={<TenantsManagement />} />
       <Route path="/tenants/add" element={<AddTenantForm />} />
       <Route path="/tenants/edit/:id" element={<AddTenantForm />} />
