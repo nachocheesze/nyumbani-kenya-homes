@@ -105,7 +105,7 @@ const PropertiesManagement = () => {
           <h1 className="text-2xl font-bold text-gray-900">Property Management</h1>
           <p className="text-gray-600">Manage your properties</p>
         </div>
-        <Button onClick={() => navigate('/dashboard/property-management/properties/add')}>
+        <Button onClick={() => navigate('/properties/new')}>
           <Plus className="h-4 w-4 mr-2" />
           Add New Property
         </Button>
@@ -166,7 +166,7 @@ const PropertiesManagement = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => navigate(`/dashboard/property-management/properties/edit/${property.id}`)}
+                          onClick={() => navigate(`/properties/edit/${property.id}`)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
