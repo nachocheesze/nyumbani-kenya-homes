@@ -12,7 +12,7 @@ import PropertyDetail from "./pages/PropertyDetail";
 import Dashboard from "./pages/Dashboard";
 import { PropertyFormPage } from "./pages/PropertyFormPage";
 import PropertyManagement from "./components/property-management/PropertiesManagement";
-import AddTenantForm from "./components/property-management/AddTenantForm";
+import { TenantFormPage } from "./pages/TenantFormPage";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
@@ -40,7 +40,8 @@ const AppContent = () => {
               <DashboardLayout>
                 <Routes>
                   <Route index element={<Dashboard />} />
-                  <Route path="property-management/tenants/add" element={<AddTenantForm />} />
+                  <Route path="property-management/tenants/add" element={<TenantFormPage />} />
+                  <Route path="property-management/tenants/edit/:id" element={<TenantFormPage />} />
                   <Route path="*" element={<Dashboard />} />
                 </Routes>
               </DashboardLayout>
