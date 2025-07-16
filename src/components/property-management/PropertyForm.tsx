@@ -77,7 +77,7 @@ export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }
       city: "",
       county: "",
       property_type: "apartment",
-      rent_amount: 0,
+      rent_amount: undefined,
       is_available: true,
       ...editingProperty,
       images: editingProperty?.images || [],
@@ -94,7 +94,7 @@ export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }
       city: "",
       county: "",
       property_type: "apartment",
-      rent_amount: 0,
+      rent_amount: undefined,
       is_available: true,
       ...editingProperty,
       images: editingProperty?.images || [],
@@ -203,21 +203,25 @@ export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }
               <FormField control={form.control} name="county" render={({ field }) => (
                 <FormItem>
                   <FormLabel>County</FormLabel>
-                  <FormControl><Input placeholder="e.g., Nairobi County" {...field} /></FormControl>
+                    <FormControl>
+                      <Input placeholder="e.g., Nairobi County" {...field} />
+                    </FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="rent_amount" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Rent Amount (KES)</FormLabel>
-                  <FormControl><Input type="number" placeholder="e.g., 150000" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} /></FormControl>
+                    <FormControl>
+                     <Input type="number" placeholder="e.g., 150000" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || undefined)} />
+                    </FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="deposit_amount" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Deposit Amount (KES)</FormLabel>
-                  <FormControl><Input type="number" placeholder="e.g., 150000" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} /></FormControl>
+                  <FormControl><Input type="number" placeholder="e.g., 150000" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || undefined)} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -239,14 +243,14 @@ export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }
               <FormField control={form.control} name="bedrooms" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Bedrooms</FormLabel>
-                  <FormControl><Input type="number" placeholder="e.g., 4" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl>
+                  <FormControl><Input type="number" placeholder="e.g., 4" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || undefined)} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="bathrooms" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Bathrooms</FormLabel>
-                  <FormControl><Input type="number" placeholder="e.g., 3" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl>
+                  <FormControl><Input type="number" placeholder="e.g., 3" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || undefined)} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
