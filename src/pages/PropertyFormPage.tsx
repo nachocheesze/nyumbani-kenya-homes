@@ -1,0 +1,71 @@
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { PropertyForm, PropertyFormValues } from "@/components/property-management/PropertyForm";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+
+export function PropertyFormPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  const { data: editingProperty, isLoading: isLoadingProperty } = useQuery({
+    queryKey: ["properties", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase.from("properties").select("*").eq("id", id).single();
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const mutation = useMutation(
+    async (formData: PropertyFormValues) => {
+        const { data, error } = id
+            ? await supabase.from("properties").update({ ...formData, landlord_id: user?.id }).eq("id", id).select().single()
+            : await supabase.from("properties").insert({ ...formData, landlord_id: user?.id }).select().single();
+
+        if (error) {
+            throw new Error(error.message);
+        }
+        return data;
+    },
+    {
+      onSuccess: (data) => {
+        queryClient.invalidateQueries(["properties"]);
+        toast({ title: `Property ${id ? 'updated' : 'created'} successfully!` });
+        navigate(`/properties/${data.id}`);
+      },
+      onError: (error: Error) => {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      },
+    }
+  );
+
+  const handleSave = (data: PropertyFormValues) => {
+    mutation.mutate(data);
+  };
+
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
+  if (isLoadingProperty && id) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="container mx-auto py-10">
+      <PropertyForm 
+        editingProperty={editingProperty ?? undefined}
+        onSave={handleSave} 
+        onCancel={handleCancel}
+        isSubmitting={mutation.isLoading}
+      />
+    </div>
+  );
+}
