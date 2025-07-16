@@ -84,7 +84,7 @@ export function TenantFormPage() {
 
   return (
     <DashboardLayout>
-      <div className={cn("space-y-6", "p-6 bg-white rounded-lg shadow-md")}>
+      <div className={cn("space-y-6", "p-6 bg-white rounded-lg shadow-md", "max-w-4xl")}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button

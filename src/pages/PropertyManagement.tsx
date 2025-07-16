@@ -26,8 +26,8 @@ const PropertyManagement = () => {
       <Route path="/" element={<Navigate to="/dashboard/property-management/properties" replace />} />
       <Route path="/properties" element={<PropertiesManagement />} />
       <Route path="/tenants" element={<TenantsManagement />} />
-      <Route path="/tenants/add" element={<AddTenantForm />} />
-      <Route path="/tenants/edit/:id" element={<AddTenantForm />} />
+      <Route path="/tenants/add" element={<TenantFormPage />} />
+      <Route path="/tenants/edit/:id" element={<TenantFormPage />} />
     </Routes>
   );
 };
