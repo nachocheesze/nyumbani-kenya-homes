@@ -124,7 +124,7 @@ export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }
 
     const fileName = `${Date.now()}-${file.name}`;
     const { data, error } = await supabase.storage
-      .from("property_images")
+      .from("property-images")
       .upload(fileName, file);
 
     if (error) {
@@ -132,7 +132,7 @@ export function PropertyForm({ editingProperty, onSave, onCancel, isSubmitting }
       return;
     }
 
-    const { data: { publicUrl } } = supabase.storage.from("property_images").getPublicUrl(data.path);
+    const { data: { publicUrl } } = supabase.storage.from("property-images").getPublicUrl(data.path);
     
     if (publicUrl) {
         const updatedImageUrls = [...imageUrls, publicUrl];
