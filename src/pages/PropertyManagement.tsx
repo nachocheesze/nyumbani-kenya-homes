@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import PropertiesManagement from '@/components/property-management/PropertiesManagement';
 import TenantsManagement from '@/components/property-management/TenantsManagement';
-import AddTenantForm from '@/components/property-management/AddTenantForm';
+import { TenantFormPage } from '@/pages/TenantFormPage';
 
 const PropertyManagement = () => {
   const { userProfile } = useAuth();
