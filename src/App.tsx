@@ -10,9 +10,8 @@ import Index from "./pages/Index";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
 import Dashboard from "./pages/Dashboard";
-import PropertyForm from "./pages/PropertyForm";
+import { PropertyFormPage } from "./pages/PropertyFormPage";
 import PropertyManagement from "./components/property-management/PropertiesManagement";
-import AddPropertyForm from "./components/property-management/AddPropertyForm";
 import AddTenantForm from "./components/property-management/AddTenantForm";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -32,13 +31,15 @@ const AppContent = () => {
         <Route path="/properties" element={<Properties />} />
         <Route path="/properties/:id" element={<PropertyDetail />} />
         <Route path="/properties/new" element={<ProtectedRoute allowedRoles={['landlord', 'agent', 'real_estate_company', 'admin', 'super_admin']}>
-              <PropertyForm />
+              <PropertyFormPage />
+            </ProtectedRoute>} />
+        <Route path="/properties/edit/:id" element={<ProtectedRoute allowedRoles={['landlord', 'agent', 'real_estate_company', 'admin', 'super_admin']}>
+              <PropertyFormPage />
             </ProtectedRoute>} />
         <Route path="/dashboard/*" element={<ProtectedRoute>
               <DashboardLayout>
                 <Routes>
                   <Route index element={<Dashboard />} />
-                  <Route path="property-management/properties/add" element={<AddPropertyForm />} />
                   <Route path="property-management/tenants/add" element={<AddTenantForm />} />
                   <Route path="*" element={<Dashboard />} />
                 </Routes>
