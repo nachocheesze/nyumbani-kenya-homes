@@ -12,8 +12,9 @@ import PropertyDetail from "./pages/PropertyDetail";
 import Dashboard from "./pages/Dashboard";
 import PropertyForm from "./pages/PropertyForm";
 import PropertyManagement from "./components/property-management/PropertiesManagement";
-import AddPropertyForm from "./components/property-management/AddPropertyForm";
-import AddTenantForm from "./components/property-management/AddTenantForm";
+import PropertyOnboardingForm from "./components/onboarding/properties/PropertyOnboardingForm";
+import TenantOnboardingForm from "./components/onboarding/tenants/TenantOnboardingForm";
+
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
@@ -31,15 +32,13 @@ const AppContent = () => {
         <Route path="/" element={<Index />} />
         <Route path="/properties" element={<Properties />} />
         <Route path="/properties/:id" element={<PropertyDetail />} />
-        <Route path="/properties/new" element={<ProtectedRoute allowedRoles={['landlord', 'agent', 'real_estate_company', 'admin', 'super_admin']}>
-              <PropertyForm />
-            </ProtectedRoute>} />
+        
         <Route path="/dashboard/*" element={<ProtectedRoute>
               <DashboardLayout>
                 <Routes>
                   <Route index element={<Dashboard />} />
-                  <Route path="property-management/properties/add" element={<AddPropertyForm />} />
-                  <Route path="property-management/tenants/add" element={<AddTenantForm />} />
+                  <Route path="property-management/properties/add" element={<PropertyOnboardingForm />} />
+                  <Route path="property-management/tenants/add" element={<TenantOnboardingForm />} />
                   <Route path="*" element={<Dashboard />} />
                 </Routes>
               </DashboardLayout>

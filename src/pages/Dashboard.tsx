@@ -136,8 +136,8 @@ const Dashboard = () => {
   return (
     <Routes>
       {/* Role-specific dashboard overview routes */}
-      <Route path="/" element={getDashboardComponent(userProfile.role)} />
-      <Route path={`/${userProfile.role}`} element={getDashboardComponent(userProfile.role)} />
+      <Route path="/*" element={getDashboardComponent(userProfile.role)} />
+      <Route path={`/${userProfile.role}/*`} element={getDashboardComponent(userProfile.role)} />
       
       {/* Property Management routes */}
       <Route path="/property-management/*" element={<PropertyManagement />} />

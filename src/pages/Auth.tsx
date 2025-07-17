@@ -36,7 +36,7 @@ const Auth = () => {
   // Update active tab when location changes
   useEffect(() => {
     setActiveTab(getActiveTab());
-  }, [location.pathname]);
+  }, [location.pathname, getActiveTab]);
   
   // Redirect authenticated users
   useEffect(() => {

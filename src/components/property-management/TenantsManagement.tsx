@@ -13,14 +13,10 @@ const TenantsManagement = () => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [tenants, setTenants] = useState<any[]>([]);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchTenants();
-  }, []);
-
-  const fetchTenants = async () => {
+  const fetchTenants = useCallback(async () => {
     try {
       let query = supabase
         .from('tenants')
@@ -48,7 +44,11 @@ const TenantsManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userProfile, toast]);
+
+  useEffect(() => {
+    fetchTenants();
+  }, [fetchTenants]);
 
   const canManageTenants = ['super_admin', 'admin', 'landlord', 'agent'].includes(userProfile?.role || '');
 
