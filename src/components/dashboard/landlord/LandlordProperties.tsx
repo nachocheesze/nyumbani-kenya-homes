@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Building, Plus, Eye, Edit, Trash2 } from 'lucide-react';
@@ -116,9 +117,11 @@ const LandlordProperties = () => {
                   <Button variant="outline" size="sm">
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  <Link to={`/dashboard/property-management/properties/edit/${property.id}`}>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </Link>
                   <Button variant="outline" size="sm">
                     <Trash2 className="h-4 w-4" />
                   </Button>

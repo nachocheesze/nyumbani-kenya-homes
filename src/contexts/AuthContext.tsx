@@ -150,13 +150,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       return { error };
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Sign In Error",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive"
       });
-      return { error };
+      return { error: error as Error };
     }
   };
 
@@ -170,10 +170,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Signed Out",
         description: "You have been successfully signed out."
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Sign Out Error",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive"
       });
     }

@@ -1,8 +1,9 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, Phone, Mail, Home } from 'lucide-react';
+import { Users, Phone, Mail, Home, Edit, Trash2 } from 'lucide-react';
 
 const LandlordTenants = () => {
   const tenants = [
@@ -115,6 +116,16 @@ const LandlordTenants = () => {
                   <p className="font-semibold">{tenant.rent}/month</p>
                   <p className="text-sm text-green-600">{tenant.status}</p>
                   <p className="text-xs text-gray-500">Lease ends: {tenant.leaseEnd}</p>
+                </div>
+                <div className="flex space-x-2">
+                  <Link to={`/dashboard/property-management/tenants/edit/${tenant.id}`}>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Button variant="outline" size="sm">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ))}
