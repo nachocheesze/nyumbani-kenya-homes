@@ -58,7 +58,7 @@ const PropertyStepDetails: React.FC<PropertyStepDetailsProps> = ({ form }) => {
             <FormItem>
               <FormLabel>Bedrooms</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
+                <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -72,7 +72,7 @@ const PropertyStepDetails: React.FC<PropertyStepDetailsProps> = ({ form }) => {
             <FormItem>
               <FormLabel>Bathrooms</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
+                <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)} />
               </FormControl>
               <FormMessage />
             </FormItem>

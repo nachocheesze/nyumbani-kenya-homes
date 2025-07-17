@@ -10,7 +10,7 @@ import Index from "./pages/Index";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
 import Dashboard from "./pages/Dashboard";
-import PropertyForm from "./pages/PropertyForm";
+
 import PropertyManagement from "./components/property-management/PropertiesManagement";
 import PropertyOnboardingForm from "./components/onboarding/properties/PropertyOnboardingForm";
 import TenantOnboardingForm from "./components/onboarding/tenants/TenantOnboardingForm";
