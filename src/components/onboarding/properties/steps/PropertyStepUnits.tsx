@@ -52,7 +52,7 @@ const PropertyStepUnits: React.FC<PropertyStepUnitsProps> = ({ form }) => {
                       type="number"
                       placeholder="0"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -70,7 +70,7 @@ const PropertyStepUnits: React.FC<PropertyStepUnitsProps> = ({ form }) => {
                       type="number"
                       placeholder="0"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
                     />
                   </FormControl>
                   <FormMessage />
