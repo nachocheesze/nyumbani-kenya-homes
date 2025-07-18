@@ -171,8 +171,9 @@ const PropertyOnboardingForm: React.FC<PropertyOnboardingFormProps> = ({ editing
 
       const mainImageUrl = uploadedMediaUrls.length > 0 ? uploadedMediaUrls[0].url : null;
 
-      const propertyData: any = {
-        id: propertyId,
+      let currentPropertyId = editingProperty?.id;
+
+      const propertyDataToSave: any = {
         landlord_id: userProfile.id,
         property_name: data.property_name,
         structure_type: data.structure_type,
@@ -190,25 +191,49 @@ const PropertyOnboardingForm: React.FC<PropertyOnboardingFormProps> = ({ editing
         main_image_url: mainImageUrl,
       };
 
-      // Insert or update the main property data first
       if (editingProperty) {
-        const { error } = await supabase
+        // Update existing property
+        const { error: propertyError } = await supabase
           .from('properties')
-          .update(propertyData)
+          .update(propertyDataToSave)
           .eq('id', editingProperty.id);
-        if (error) throw error;
+        if (propertyError) throw propertyError;
       } else {
-        const { error } = await supabase
+        // Insert new property
+        const { data: newProperty, error: propertyError } = await supabase
           .from('properties')
-          .insert(propertyData);
-        if (error) throw error;
+          .insert(propertyDataToSave)
+          .select('id')
+          .single();
+        if (propertyError) throw propertyError;
+        currentPropertyId = newProperty.id;
+      }
+
+      // Ensure currentPropertyId is available for units and media
+      if (!currentPropertyId) {
+        throw new Error("Failed to obtain property ID.");
+      }
+
+      // Then, handle the units
+      if (data.units && data.units.length > 0) {
+        const unitsToInsert = data.units.map(unit => ({
+          ...unit,
+          property_id: currentPropertyId,
+          landlord_id: userProfile.id,
+        }));
+
+        const { error: unitsError } = await supabase.from('units').insert(unitsToInsert);
+        if (unitsError) {
+          console.error('Error saving units:', unitsError);
+          throw new Error('Property was saved, but failed to save units. Please edit the property to add units later.');
+        }
       }
 
       // Then, handle the media records
       if (uploadedMediaUrls.length > 0) {
         // If editing, we might need to remove old media first. For now, we'll just add the new ones.
         const mediaToInsert = uploadedMediaUrls.map(media => ({
-          property_id: propertyId,
+          property_id: currentPropertyId,
           image_url: media.url, // Assuming a generic URL column
           caption: media.caption || '',
         }));
