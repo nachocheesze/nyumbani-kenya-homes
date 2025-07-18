@@ -36,7 +36,6 @@ const AppContent = () => {
         <Route path="/dashboard/*" element={<ProtectedRoute>
               <DashboardLayout>
                 <Routes>
-                  <Route index element={<Dashboard />} />
                   <Route path="property-management/properties/add" element={<PropertyOnboardingForm />} />
                   <Route path="property-management/tenants/add" element={<TenantOnboardingForm />} />
                   <Route path="*" element={<Dashboard />} />

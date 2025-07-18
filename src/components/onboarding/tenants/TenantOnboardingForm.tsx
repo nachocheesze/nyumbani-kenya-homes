@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
 
 const tenantSchema = z.object({
   full_name: z.string().optional(),
@@ -164,15 +165,40 @@ const TenantOnboardingForm: React.FC<TenantOnboardingFormProps> = ({ editingTena
   const onSubmit = async (data: TenantFormData) => {
     setIsSubmitting(true);
     
-    // For now, just log the data. Supabase insert logic will be added later.
-    console.log("Tenant Form Data:", data);
+    setIsSubmitting(true);
+
+    const uploadFile = async (file: File | undefined, path: string): Promise<string | null> => {
+      if (!file) return null;
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExtension}`;
+      const filePath = `${path}/${fileName}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('tenant_documents') // Assuming 'tenant_documents' is your bucket name
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('tenant_documents')
+        .getPublicUrl(filePath);
+
+      return publicUrlData.publicUrl;
+    };
 
     try {
-      // Placeholder for Supabase upload logic for files
-      // For example, you'd upload data.lease_agreement_file, data.id_document_front, etc.
-      // and then store their URLs in the tenantData object.
+      // Upload individual files
+      const leaseAgreementFileUrl = await uploadFile(data.lease_agreement_file, `tenants/${userProfile?.id}/lease_agreements`);
+      const idDocumentFrontUrl = await uploadFile(data.id_document_front, `tenants/${userProfile?.id}/identification`);
+      const idDocumentBackUrl = await uploadFile(data.id_document_back, `tenants/${userProfile?.id}/identification`);
+      const passportPhotoUrl = await uploadFile(data.passport_photo, `tenants/${userProfile?.id}/identification`);
 
-      const tenantData = {
+      const tenantData: any = {
         full_name: data.full_name,
         email: data.email,
         phone_number: data.phone_number,
@@ -186,10 +212,6 @@ const TenantOnboardingForm: React.FC<TenantOnboardingFormProps> = ({ editingTena
         deposit_paid: data.deposit_paid,
         payment_frequency: data.payment_frequency,
         rent_due_date: data.rent_due_date,
-        // lease_agreement_file_url: '...',
-        // id_document_front_url: '...',
-        // id_document_back_url: '...',
-        // passport_photo_url: '...',
         kra_pin: data.kra_pin,
         occupation: data.occupation,
         emergency_contact_full_name: data.emergency_contact_full_name,
@@ -197,24 +219,58 @@ const TenantOnboardingForm: React.FC<TenantOnboardingFormProps> = ({ editingTena
         emergency_contact_phone_number: data.emergency_contact_phone_number,
         emergency_contact_email: data.emergency_contact_email,
         emergency_contact_address: data.emergency_contact_address,
-        // additional_documents_urls: '...',
+        lease_agreement_file_url: leaseAgreementFileUrl,
+        id_document_front_url: idDocumentFrontUrl,
+        id_document_back_url: idDocumentBackUrl,
+        passport_photo_url: passportPhotoUrl,
       };
 
       let result;
+      let tenantId: string | null = null;
+
       if (editingTenant) {
-        // result = await supabase
-        //   .from('tenants')
-        //   .update(tenantData)
-        //   .eq('id', editingTenant.id);
-        console.log("Updating tenant:", tenantData);
+        result = await supabase
+          .from('tenants')
+          .update(tenantData)
+          .eq('id', editingTenant.id)
+          .select(); // Select the updated row to get its ID
+        tenantId = editingTenant.id;
       } else {
-        // result = await supabase
-        //   .from('tenants')
-        //   .insert(tenantData);
-        console.log("Adding new tenant:", tenantData);
+        result = await supabase
+          .from('tenants')
+          .insert(tenantData)
+          .select(); // Select the inserted row to get its ID
       }
 
-      // if (result.error) throw result.error;
+      if (result.error) throw result.error;
+      if (result.data && result.data.length > 0) {
+        tenantId = result.data[0].id;
+      } else {
+        throw new Error("Failed to retrieve tenant ID after insert/update.");
+      }
+
+      // Handle additional documents
+      if (data.additional_documents && data.additional_documents.length > 0 && tenantId) {
+        for (const doc of data.additional_documents) {
+          if (doc.file) {
+            const docUrl = await uploadFile(doc.file, `tenants/${tenantId}/additional_documents`);
+            if (docUrl) {
+              const { error: docInsertError } = await supabase
+                .from('tenant_documents')
+                .insert({
+                  tenant_id: tenantId,
+                  file_url: docUrl,
+                  caption: doc.caption || '',
+                  uploaded_at: new Date().toISOString(),
+                });
+              if (docInsertError) {
+                console.error(`Failed to insert additional document ${doc.file.name}:`, docInsertError);
+                // Decide whether to throw or just log and continue
+              }
+            }
+          }
+        }
+      }
 
       toast({
         title: "Success",

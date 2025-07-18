@@ -16,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
+import { uploadFileAndGetPublicUrl } from '@/integrations/supabase/storage';
 
 const propertySchema = z.object({
   property_name: z.string().optional(),
@@ -42,7 +43,7 @@ const propertySchema = z.object({
   })).optional(),
 
   media_files: z.array(z.object({
-    file: z.any().optional(), // File object
+    file: z.any().optional(),
     caption: z.string().optional(),
   })).optional(),
 });
@@ -141,16 +142,39 @@ const PropertyOnboardingForm: React.FC<PropertyOnboardingFormProps> = ({ editing
 
   const onSubmit = async (data: PropertyFormData) => {
     setIsSubmitting(true);
-    
-    // For now, just log the data. Supabase insert logic will be added later.
-    console.log("Property Form Data:", data);
+
+    if (!userProfile) {
+      toast({ title: "Authentication Error", description: "You must be logged in to create a property.", variant: "destructive" });
+      setIsSubmitting(false);
+      return;
+    }
+
+    const propertyId = editingProperty?.id || uuidv4();
 
     try {
-      // Placeholder for Supabase upload logic for files
-      // For example, you'd upload data.media_files and then store their URLs in the propertyData object.
+      // Upload media files and get their URLs
+      const uploadedMediaUrls: { url: string; caption?: string }[] = [];
+      if (data.media_files && data.media_files.length > 0) {
+        const uploadPromises = data.media_files.map(async (media, index) => {
+          if (media.file && media.file instanceof File) {
+            const timestamp = Date.now();
+            const path = `properties/${propertyId}/media/${timestamp}-${index}-${media.file.name}`;
+            const url = await uploadFileAndGetPublicUrl(media.file, path);
+            return { url, caption: media.caption };
+          }
+          return null;
+        });
+
+        const results = (await Promise.all(uploadPromises)).filter(Boolean);
+        uploadedMediaUrls.push(...results as { url: string; caption?: string }[]);
+      }
+
+      const mainImageUrl = uploadedMediaUrls.length > 0 ? uploadedMediaUrls[0].url : null;
 
       const propertyData: any = {
-        title: data.property_name,
+        id: propertyId,
+        landlord_id: userProfile.id,
+        property_name: data.property_name,
         structure_type: data.structure_type,
         total_units: data.total_units,
         description: data.description,
@@ -163,25 +187,38 @@ const PropertyOnboardingForm: React.FC<PropertyOnboardingFormProps> = ({ editing
         bathrooms: data.bathrooms,
         features: data.features,
         amenities: data.amenities,
-        // units: data.units, // Units might be stored in a separate table
-        // image_urls: '...',
+        main_image_url: mainImageUrl,
       };
 
-      let result;
+      // Insert or update the main property data first
       if (editingProperty) {
-        // result = await supabase
-        //   .from('properties')
-        //   .update(propertyData)
-        //   .eq('id', editingProperty.id);
-        console.log("Updating property:", propertyData);
+        const { error } = await supabase
+          .from('properties')
+          .update(propertyData)
+          .eq('id', editingProperty.id);
+        if (error) throw error;
       } else {
-        // result = await supabase
-        //   .from('properties')
-        //   .insert(propertyData);
-        console.log("Adding new property:", propertyData);
+        const { error } = await supabase
+          .from('properties')
+          .insert(propertyData);
+        if (error) throw error;
       }
 
-      // if (result.error) throw result.error;
+      // Then, handle the media records
+      if (uploadedMediaUrls.length > 0) {
+        // If editing, we might need to remove old media first. For now, we'll just add the new ones.
+        const mediaToInsert = uploadedMediaUrls.map(media => ({
+          property_id: propertyId,
+          image_url: media.url, // Assuming a generic URL column
+          caption: media.caption || '',
+        }));
+
+        const { error: mediaError } = await supabase.from('property_media').insert(mediaToInsert);
+        if (mediaError) {
+            // Log the error but don't block the success message for the property itself
+            console.error('Error saving property media:', mediaError);
+        }
+      }
 
       toast({
         title: "Success",
@@ -190,11 +227,11 @@ const PropertyOnboardingForm: React.FC<PropertyOnboardingFormProps> = ({ editing
 
       form.reset();
       navigate('/dashboard/property-management/properties');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving property:', error);
       toast({
         title: "Error",
-        description: `Failed to ${editingProperty ? 'update' : 'create'} property`,
+        description: error.message || `Failed to ${editingProperty ? 'update' : 'create'} property`,
         variant: "destructive",
       });
     } finally {
