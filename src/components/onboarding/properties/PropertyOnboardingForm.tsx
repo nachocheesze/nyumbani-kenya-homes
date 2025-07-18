@@ -219,7 +219,6 @@ const PropertyOnboardingForm: React.FC<PropertyOnboardingFormProps> = ({ editing
         const unitsToInsert = data.units.map(unit => ({
           ...unit,
           property_id: currentPropertyId,
-          landlord_id: userProfile.id,
         }));
 
         const { error: unitsError } = await supabase.from('units').insert(unitsToInsert);

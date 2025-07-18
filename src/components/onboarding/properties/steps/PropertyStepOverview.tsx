@@ -63,7 +63,7 @@ const PropertyStepOverview: React.FC<PropertyStepOverviewProps> = ({ form }) => 
             <FormControl>
               <Input
                 type="number"
-                placeholder="0"
+                placeholder="N/A"
                 {...field}
                 onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
               />
