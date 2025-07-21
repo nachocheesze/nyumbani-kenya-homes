@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
 import { useRoleRedirect } from "@/hooks/useRoleRedirect";
 
@@ -16,7 +16,7 @@ import InvestorDashboard from "@/components/dashboard/overview/InvestorDashboard
 import ShortTermHostDashboard from "@/components/dashboard/overview/ShortTermHostDashboard";
 
 // Import property management
-import PropertyManagement from "@/pages/PropertyManagement";
+import PropertyOnboardingForm from '@/components/onboarding/properties/PropertyOnboardingForm';
 
 // Import tenant-specific pages
 import TenantRent from "@/components/dashboard/tenant/TenantRent";
@@ -139,8 +139,11 @@ const Dashboard = () => {
       <Route path="/*" element={getDashboardComponent(userProfile.role)} />
       <Route path={`/${userProfile.role}/*`} element={getDashboardComponent(userProfile.role)} />
       
-      {/* Property Management routes */}
-      <Route path="/property-management/*" element={<PropertyManagement />} />
+      {/* Landlord Property Management routes */}
+      <Route path="/landlord/properties/add" element={<PropertyOnboardingForm />} />
+      <Route path="/landlord/properties/edit/:id" element={<PropertyOnboardingForm />} />
+      {/* Redirect old property management routes */}
+      <Route path="/property-management/*" element={<Navigate to="/dashboard/landlord/properties" replace />} />
       
       {/* Tenant-specific routes */}
       <Route path="/tenant/rent" element={<TenantRent />} />

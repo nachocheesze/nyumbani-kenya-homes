@@ -11,6 +11,10 @@ interface PropertyStepLocationDetailsProps {
 const PropertyStepLocationDetails: React.FC<PropertyStepLocationDetailsProps> = ({ form }) => {
   return (
     <div className="space-y-4">
+      <h2 className="text-2xl font-bold">Location Details</h2>
+      <p className="text-gray-600">Provide precise location information for the property.</p>
+
+      {/* Address */}
       <FormField
         control={form.control}
         name="address"
@@ -25,6 +29,7 @@ const PropertyStepLocationDetails: React.FC<PropertyStepLocationDetailsProps> = 
         )}
       />
 
+      {/* City */}
       <FormField
         control={form.control}
         name="city"
@@ -39,6 +44,7 @@ const PropertyStepLocationDetails: React.FC<PropertyStepLocationDetailsProps> = 
         )}
       />
 
+      {/* County */}
       <FormField
         control={form.control}
         name="county"
@@ -53,19 +59,77 @@ const PropertyStepLocationDetails: React.FC<PropertyStepLocationDetailsProps> = 
         )}
       />
 
+      {/* Neighborhood */}
       <FormField
         control={form.control}
-        name="nearby_landmarks"
+        name="neighborhood"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Nearby Landmarks</FormLabel>
+            <FormLabel>Neighborhood (Optional)</FormLabel>
             <FormControl>
-              <Input placeholder="e.g., Near ABC Mall" {...field} />
+              <Input placeholder="e.g., Kilimani, Westlands" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
+
+      {/* Nearest Landmark */}
+      <FormField
+        control={form.control}
+        name="nearest_landmark"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Nearest Landmark (Optional)</FormLabel>
+            <FormControl>
+              <Input placeholder="e.g., Near ABC Mall, Opposite XYZ School" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Coordinates (Optional) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="latitude"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Latitude (Optional)</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  step="any"
+                  placeholder="e.g., -1.286389"
+                  {...field}
+                  onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="longitude"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Longitude (Optional)</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  step="any"
+                  placeholder="e.g., 36.817223"
+                  {...field}
+                  onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
     </div>
   );
 };

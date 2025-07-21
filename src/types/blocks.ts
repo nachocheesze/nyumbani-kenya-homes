@@ -1,0 +1,1 @@
+// This file will contain types related to property blocks and structures.
