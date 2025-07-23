@@ -13,6 +13,7 @@ import PropertyStepMedia from './steps/PropertyStepMedia';
 import PropertyStepReview from './steps/PropertyStepReview';
 import PropertyStepLegal from './steps/PropertyStepLegal';
 import PropertyStepOwnership from './steps/PropertyStepOwnership';
+import PropertyStepPayments from './steps/PropertyStepPayments';
 import PropertyStepStructureDetails from './steps/PropertyStepStructureDetails'; // New import
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -88,8 +89,8 @@ const propertySchema = z.object({
     file: z.any().optional(),
     caption: z.string().optional(),
   })).optional(),
-  video_tour_url: z.string().url("Must be a valid URL").optional(),
-  virtual_tour_url: z.string().url("Must be a valid URL").optional(),
+  video_tour_url: z.string().url().or(z.literal('')).optional(),
+  virtual_tour_url: z.string().url().or(z.literal('')).optional(),
 });
 
 export type PropertyFormData = z.infer<typeof propertySchema>;
@@ -180,6 +181,11 @@ const PropertyOnboardingForm: React.FC<PropertyOnboardingFormProps> = ({ editing
       title: 'Media Upload',
       component: <PropertyStepMedia form={form as UseFormReturn<PropertyFormData>} />,
       schema: propertySchema.pick({ images: true, floor_plans: true, video_tour_url: true, virtual_tour_url: true }),
+    },
+    {
+      title: 'Payment Information',
+      component: <PropertyStepPayments form={form as UseFormReturn<PropertyFormData>} />,
+      schema: propertySchema.pick({ payments: true }),
     },
     {
       title: 'Legal & Documents',
