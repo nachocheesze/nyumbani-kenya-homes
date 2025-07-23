@@ -91,6 +91,17 @@ const propertySchema = z.object({
   })).optional(),
   video_tour_url: z.string().url().or(z.literal('')).optional(),
   virtual_tour_url: z.string().url().or(z.literal('')).optional(),
+  payments: z.array(z.object({
+    methodType: z.enum(["mobile_money", "bank", "other"]),
+    provider: z.enum(["mpesa", "airtel", "t-kash"]).nullable(),
+    channel: z.enum(["paybill", "till_number", "phone"]).nullable(),
+    accountName: z.string(),
+    accountNumber: z.string(),
+    bankName: z.string().optional(),
+    swiftCode: z.string().optional(),
+    branch: z.string().optional(),
+    notes: z.string().optional(),
+  })).optional(),
 });
 
 export type PropertyFormData = z.infer<typeof propertySchema>;
@@ -198,7 +209,7 @@ const PropertyOnboardingForm: React.FC<PropertyOnboardingFormProps> = ({ editing
       title: 'Management & Ownership',
       component: <PropertyStepOwnership form={form as UseFormReturn<PropertyFormData>} />,
       schema: propertySchema.pick({
-        landlord_id: true, agent_id: true, caretaker_id: true, paybill_number: true, bank_account: true, internal_notes: true
+        landlord_id: true, agent_id: true, caretaker_id: true, internal_notes: true
       }),
     },
     {
@@ -367,6 +378,28 @@ const PropertyOnboardingForm: React.FC<PropertyOnboardingFormProps> = ({ editing
           if (floorPlansError) {
             console.error('Error saving floor plans:', floorPlansError);
           }
+        }
+      }
+
+      // Handle payment methods
+      if (data.payments && data.payments.length > 0) {
+        const paymentsToInsert = data.payments.map(payment => ({
+          property_id: currentPropertyId,
+          method_type: payment.methodType,
+          provider: payment.provider,
+          channel: payment.channel,
+          account_name: payment.accountName,
+          account_number: payment.accountNumber,
+          bank_name: payment.bankName,
+          branch: payment.branch,
+          swift_code: payment.swiftCode,
+          notes: payment.notes,
+        }));
+
+        const { error: paymentsError } = await supabase.from('property_payment_methods').insert(paymentsToInsert);
+        if (paymentsError) {
+          console.error('Error saving payment methods:', paymentsError);
+          throw new Error('Property was saved, but failed to save payment methods. Please edit the property to add them later.');
         }
       }
 

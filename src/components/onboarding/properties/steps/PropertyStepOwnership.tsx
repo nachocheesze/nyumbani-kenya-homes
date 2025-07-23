@@ -60,36 +60,6 @@ const PropertyStepOwnership: React.FC<PropertyStepOwnershipProps> = ({ form }) =
         )}
       />
 
-      {/* Paybill Number (Optional) */}
-      <FormField
-        control={form.control}
-        name="paybill_number"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Paybill Number (Optional)</FormLabel>
-            <FormControl>
-              <Input type="number" placeholder="e.g., 123456" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      {/* Bank Account (Optional) */}
-      <FormField
-        control={form.control}
-        name="bank_account"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Bank Account (Optional)</FormLabel>
-            <FormControl>
-              <Input placeholder="e.g., 1234567890 (Account Number)" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
       {/* Internal Notes / Tags (Optional) */}
       <FormField
         control={form.control}
