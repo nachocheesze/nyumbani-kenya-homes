@@ -636,7 +636,7 @@ export type Database = {
           size_sqm: number | null
           status: string | null
           tenant_id: string | null
-          unit_number: string
+          unit_name: string
         }
         Insert: {
           amenities?: string[] | null
@@ -652,7 +652,7 @@ export type Database = {
           size_sqm?: number | null
           status?: string | null
           tenant_id?: string | null
-          unit_number: string
+          unit_name: string
         }
         Update: {
           amenities?: string[] | null

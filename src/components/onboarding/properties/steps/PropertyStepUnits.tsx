@@ -28,7 +28,7 @@ const PropertyStepUnits: React.FC<PropertyStepUnitsProps> = ({ form }) => {
 
   const addNewUnit = () => {
     append({
-      unitNumber: "",
+      unitName: "",
       blockName: blocks.length > 0 ? blocks[0].name : undefined,
       bedrooms: 1,
       bathrooms: 1,
@@ -61,7 +61,7 @@ const PropertyStepUnits: React.FC<PropertyStepUnitsProps> = ({ form }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={control}
-              name={`units.${index}.unitNumber`}
+              name={`units.${index}.unitName`}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Unit Number / Name</FormLabel>

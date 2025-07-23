@@ -49,8 +49,6 @@ export interface Property {
   lease_template_url?: string;
   construction_permit_url?: string;
   nema_certificate_url?: string;
-  landlord_id?: string;
-  agent_id?: string;
   caretaker_id?: string;
   paybill_number?: number;
   bank_account?: string;

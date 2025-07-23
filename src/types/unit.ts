@@ -1,8 +1,9 @@
 export interface Unit {
+    unitName: string;
   id: string;
   property_id: string;
   block_name?: string; // New: for multi-block properties
-  unit_number: string;
+  unit_name: string;
   bedrooms?: number;
   bathrooms?: number;
   size?: number; // in sqft or sqm

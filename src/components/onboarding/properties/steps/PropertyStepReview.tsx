@@ -56,7 +56,24 @@ const PropertyStepReview: React.FC<PropertyStepReviewProps> = ({ form }) => {
           <p><strong>Has Elevator:</strong> {formData.has_elevator !== undefined ? (formData.has_elevator ? 'Yes' : 'No') : 'N/A'}</p>
           <p><strong>Amenities:</strong> {formData.amenities && formData.amenities.length > 0 ? formData.amenities.join(', ') : 'None'}</p>
           <p><strong>Shared Utilities:</strong> {formData.shared_utilities && formData.shared_utilities.length > 0 ? formData.shared_utilities.join(', ') : 'None'}</p>
+          
+          <p><strong>Features:</strong> {formData.features && formData.features.length > 0 ? formData.features.join(', ') : 'None'}</p>
           <p><strong>Total Units:</strong> {formData.total_units || 'N/A'}</p>
+          {formData.blocks && formData.blocks.length > 0 && (
+            <div>
+              <h4 className="text-md font-semibold mt-4">Blocks:</h4>
+              <ul className="list-disc list-inside ml-4">
+                {formData.blocks.map((block, index) => (
+                  <li key={index}>
+                    <strong>Block {index + 1}:</strong> {block.name}
+                    {block.floorCount !== undefined && `, Floors: ${block.floorCount}`}
+                    {`, Has Elevator: ${block.hasElevator ? 'Yes' : 'No'}`}
+                    {`, Units in Block: ${block.unitsInBlock}`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Units Setup */}
@@ -67,20 +84,20 @@ const PropertyStepReview: React.FC<PropertyStepReviewProps> = ({ form }) => {
               {formData.units.map((unit, index) => (
                 <li key={index}>
                   <strong>Unit {index + 1}:</strong>
-                  {unit.block_name && ` Block: ${unit.block_name},`}
-                  {unit.unit_number && ` Unit No: ${unit.unit_number},`}
+                  {unit.blockName && ` Block: ${unit.blockName},`}
+                  {unit.unitName && ` Unit Name: ${unit.unitName},`}
                   {unit.bedrooms !== undefined && ` Bedrooms: ${unit.bedrooms},`}
                   {unit.bathrooms !== undefined && ` Bathrooms: ${unit.bathrooms},`}
                   {unit.size !== undefined && ` Size: ${unit.size},`}
-                  {unit.rent_amount !== undefined && ` Rent: KES ${unit.rent_amount.toLocaleString()},`}
-                  {unit.deposit_amount !== undefined && ` Deposit: KES ${unit.deposit_amount.toLocaleString()},`}
-                  {unit.is_negotiable !== undefined && ` Negotiable: ${unit.is_negotiable ? 'Yes' : 'No'},`}
-                  {unit.payment_cycle && ` Cycle: ${unit.payment_cycle},`}
-                  {unit.rent_due_day !== undefined && ` Due Day: ${unit.rent_due_day},`}
-                  {unit.is_occupied !== undefined && ` Occupied: ${unit.is_occupied ? 'Yes' : 'No'},`}
-                  {unit.available_from && ` Available From: ${unit.available_from},`}
-                  {unit.tenant_id && ` Tenant ID: ${unit.tenant_id},`}
-                  {unit.is_available !== undefined && ` Available: ${unit.is_available ? 'Yes' : 'No'}`}
+                  {unit.rent !== undefined && ` Rent: KES ${unit.rent.toLocaleString()},`}
+                  {unit.deposit !== undefined && ` Deposit: KES ${unit.deposit.toLocaleString()},`}
+                  {unit.isNegotiable !== undefined && ` Negotiable: ${unit.isNegotiable ? 'Yes' : 'No'},`}
+                  {unit.paymentCycle && ` Cycle: ${unit.paymentCycle},`}
+                  {unit.rentDueDay !== undefined && ` Due Day: ${unit.rentDueDay},`}
+                  {unit.isOccupied !== undefined && ` Occupied: ${unit.isOccupied ? 'Yes' : 'No'},`}
+                  {unit.availableFrom && ` Available From: ${unit.availableFrom},`}
+                  {unit.tenantId && ` Tenant ID: ${unit.tenantId},`}
+                  
                 </li>
               ))}
             </ul>
@@ -96,6 +113,31 @@ const PropertyStepReview: React.FC<PropertyStepReviewProps> = ({ form }) => {
           <p><strong>Virtual Tour URL:</strong> {formData.virtual_tour_url || 'N/A'}</p>
           <p><strong>Images:</strong> {formData.images && formData.images.length > 0 ? `${formData.images.length} file(s)` : 'None'}</p>
           <p><strong>Floor Plans:</strong> {formData.floor_plans && formData.floor_plans.length > 0 ? `${formData.floor_plans.length} file(s)` : 'None'}</p>
+        </div>
+
+        {/* Payment Information */}
+        <div>
+          <h3 className="text-lg font-semibold">Payment Information</h3>
+          {formData.payments && formData.payments.length > 0 ? (
+            <ul className="list-disc list-inside">
+              {formData.payments.map((payment, index) => (
+                <li key={index}>
+                  <strong>Method {index + 1}:</strong>
+                  {payment.methodType && ` Type: ${payment.methodType},`}
+                  {payment.provider && ` Provider: ${payment.provider},`}
+                  {payment.channel && ` Channel: ${payment.channel},`}
+                  {payment.accountName && ` Account Name: ${payment.accountName},`}
+                  {payment.accountNumber && ` Account Number: ${payment.accountNumber},`}
+                  {payment.bankName && ` Bank Name: ${payment.bankName},`}
+                  {payment.branch && ` Branch: ${payment.branch},`}
+                  {payment.swiftCode && ` Swift Code: ${payment.swiftCode},`}
+                  {payment.notes && ` Notes: ${payment.notes}`}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No payment methods configured.</p>
+          )}
         </div>
 
         {/* Legal & Documents */}
@@ -114,8 +156,6 @@ const PropertyStepReview: React.FC<PropertyStepReviewProps> = ({ form }) => {
           <p><strong>Landlord ID:</strong> {formData.landlord_id || 'N/A'}</p>
           <p><strong>Agent ID:</strong> {formData.agent_id || 'N/A'}</p>
           <p><strong>Caretaker ID:</strong> {formData.caretaker_id || 'N/A'}</p>
-          <p><strong>Paybill Number:</strong> {formData.paybill_number || 'N/A'}</p>
-          <p><strong>Bank Account:</strong> {formData.bank_account || 'N/A'}</p>
           <p><strong>Internal Notes:</strong> {formData.internal_notes || 'N/A'}</p>
         </div>
       </CardContent>

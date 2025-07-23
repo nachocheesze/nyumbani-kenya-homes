@@ -24,7 +24,7 @@ import { uploadFileAndGetPublicUrl } from '@/integrations/supabase/storage';
 import { Unit } from '@/types/unit'; // Import Unit type
 
 const unitSchema = z.object({
-  unitNumber: z.string().min(1, "Unit number is required"),
+  unitName: z.string().min(1, "Unit name is required"),
   blockName: z.string().optional(),
   bedrooms: z.number().int().min(0, "Bedrooms must be a non-negative number"),
   bathrooms: z.number().int().min(0, "Bathrooms must be a non-negative number"),
@@ -102,6 +102,10 @@ const propertySchema = z.object({
     branch: z.string().optional(),
     notes: z.string().optional(),
   })).optional(),
+  landlord_id: z.string().optional(),
+  agent_id: z.string().optional(),
+  caretaker_id: z.string().optional(),
+  internal_notes: z.string().optional(),
 });
 
 export type PropertyFormData = z.infer<typeof propertySchema>;
@@ -318,7 +322,7 @@ const PropertyOnboardingForm: React.FC<PropertyOnboardingFormProps> = ({ editing
       if (data.units && data.units.length > 0) {
         const unitsToInsert = data.units.map(unit => ({
           property_id: currentPropertyId,
-          unit_number: unit.unitNumber,
+          unit_name: unit.unitName,
           block_name: unit.blockName,
           bedrooms: unit.bedrooms,
           bathrooms: unit.bathrooms,
