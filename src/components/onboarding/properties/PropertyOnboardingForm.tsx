@@ -5,6 +5,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import PropertyStepStructure from './steps/PropertyStepStructure';
 import PropertyStepLocationDetails from './steps/PropertyStepLocationDetails';
 import PropertyStepDetails from './steps/PropertyStepDetails';
@@ -105,6 +106,11 @@ const propertySchema = z.object({
   landlord_id: z.string().optional(),
   agent_id: z.string().optional(),
   caretaker_id: z.string().optional(),
+  ownership_type: z.string().optional(),
+  title_deed_file: z.any().optional(),
+  lease_template_file: z.any().optional(),
+  construction_permit_file: z.any().optional(),
+  nema_certificate_file: z.any().optional(),
   internal_notes: z.string().optional(),
 });
 
@@ -443,13 +449,35 @@ const PropertyOnboardingForm: React.FC<PropertyOnboardingFormProps> = ({ editing
                   Back
                 </Button>
               )}
+              <div className="flex-grow"></div> {/* Spacer to push buttons to ends */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button type="button" variant="outline" className="mr-2">
+                    Cancel
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to cancel onboarding? All unsaved data will be lost.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>No, continue</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => navigate('/dashboard/landlord/properties')}>
+                      Yes, cancel
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
               {currentStep < steps.length - 1 && (
-                <Button type="button" onClick={handleNext} className="ml-auto">
+                <Button type="button" onClick={handleNext}>
                   Next
                 </Button>
               )}
               {currentStep === steps.length - 1 && (
-                <Button type="submit" disabled={isSubmitting} className="ml-auto">
+                <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? 'Submitting...' : (editingProperty ? 'Update Property' : 'Create Property')}
                 </Button>
               )}

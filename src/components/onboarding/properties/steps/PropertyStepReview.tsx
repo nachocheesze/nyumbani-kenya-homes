@@ -1,4 +1,3 @@
-import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { PropertyFormData } from '../PropertyOnboardingForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +6,7 @@ interface PropertyStepReviewProps {
   form: UseFormReturn<PropertyFormData>;
 }
 
-const PropertyStepReview: React.FC<PropertyStepReviewProps> = ({ form }) => {
+const PropertyStepReview: ({ form }: PropertyStepReviewProps) => React.JSX.Element = ({ form }) => {
   const formData = form.watch();
 
   return (

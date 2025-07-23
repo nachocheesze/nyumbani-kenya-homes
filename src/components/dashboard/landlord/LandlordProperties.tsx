@@ -10,30 +10,45 @@ import { useToast } from '@/hooks/use-toast';
 import { Property } from '@/types/property';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+
 const LandlordProperties = () => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const pageSize = 10; // adjust if needed
+  const [totalCount, setTotalCount] = useState(0);
 
-  useEffect(() => {
-    fetchProperties();
-  }, []);
+  const totalPages = Math.ceil(totalCount / pageSize);
 
-  const fetchProperties = async () => {
+  const fetchProperties = useCallback(async () => {
+    if (!userProfile) return;
+
     try {
-      let query = supabase.from('properties').select('*');
+      setLoading(true);
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      let query = supabase
+        .from('properties')
+        .select('*', { count: 'exact' });
       
-      if (userProfile?.role === 'landlord') {
+      if (userProfile.role === 'landlord') {
         query = query.eq('landlord_id', userProfile.id);
-      } else if (userProfile?.role === 'agent') {
+      } else if (userProfile.role === 'agent') {
         query = query.eq('agent_id', userProfile.id);
       }
       
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error, count } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
       if (error) throw error;
       setProperties(data || []);
+      setTotalCount(count || 0);
     } catch (error) {
       console.error('Error fetching properties:', error);
       toast({
@@ -44,7 +59,11 @@ const LandlordProperties = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, userProfile, toast]);
+
+  useEffect(() => {
+    fetchProperties();
+  }, [fetchProperties]);
 
   const handleDelete = async (propertyId: string) => {
     if (!confirm('Are you sure you want to delete this property?')) return;
@@ -224,6 +243,15 @@ const LandlordProperties = () => {
                 ))}
               </TableBody>
             </Table>
+          )}
+          {properties.length > 0 && (
+            <div className="mt-4">
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
+            </div>
           )}
         </CardContent>
       </Card>
