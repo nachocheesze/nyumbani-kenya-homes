@@ -153,7 +153,7 @@ const AgentDashboard = () => {
             ].map((property, index) => (
               <div key={index} className="flex justify-between items-center p-4 border rounded-lg">
                 <div>
-                  <h4 className="font-medium">{property.title}</h4>
+                  <h4 className="font-medium">{property.property_name}</h4>
                   <div className="flex items-center space-x-4 mt-1">
                     <span className="text-sm text-gray-600">{property.views} views</span>
                     <span className="text-sm text-gray-600">{property.inquiries} inquiries</span>

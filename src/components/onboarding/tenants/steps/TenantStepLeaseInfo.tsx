@@ -25,7 +25,7 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
     const fetchProperties = async () => {
       if (!userProfile) return;
 
-      let query = supabase.from('properties').select('id, title');
+      let query = supabase.from('properties').select('id, property_name');
 
       if (userProfile.role === 'landlord') {
         query = query.eq('landlord_id', userProfile.id);
@@ -100,7 +100,7 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
               <SelectContent>
                 {properties.map((property) => (
                   <SelectItem key={property.id} value={property.id}>
-                    {property.title}
+                    {property.property_name}
                   </SelectItem>
                 ))}
               </SelectContent>

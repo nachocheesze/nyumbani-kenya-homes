@@ -14,7 +14,7 @@ const Properties = () => {
   const properties = [
     {
       id: 1,
-      title: "Modern 3BR Apartment in Westlands",
+      property_name: "Modern 3BR Apartment in Westlands",
       price: "KSh 85,000",
       location: "Westlands, Nairobi",
       image: "/placeholder.svg",
@@ -26,7 +26,7 @@ const Properties = () => {
     },
     {
       id: 2,
-      title: "Luxury Villa in Karen",
+      property_name: "Luxury Villa in Karen",
       price: "KSh 250,000",
       location: "Karen, Nairobi",
       image: "/placeholder.svg",
@@ -38,7 +38,7 @@ const Properties = () => {
     },
     {
       id: 3,
-      title: "Cozy 2BR in Kilimani",
+      property_name: "Cozy 2BR in Kilimani",
       price: "KSh 65,000",
       location: "Kilimani, Nairobi",
       image: "/placeholder.svg",
@@ -50,7 +50,7 @@ const Properties = () => {
     },
     {
       id: 4,
-      title: "Executive Townhouse in Lavington",
+      property_name: "Executive Townhouse in Lavington",
       price: "KSh 180,000",
       location: "Lavington, Nairobi",
       image: "/placeholder.svg",
@@ -62,7 +62,7 @@ const Properties = () => {
     },
     {
       id: 5,
-      title: "Modern Studio in CBD",
+      property_name: "Modern Studio in CBD",
       price: "KSh 45,000",
       location: "CBD, Nairobi",
       image: "/placeholder.svg",
@@ -74,7 +74,7 @@ const Properties = () => {
     },
     {
       id: 6,
-      title: "Family Home in Runda",
+      property_name: "Family Home in Runda",
       price: "KSh 320,000",
       location: "Runda, Nairobi",
       image: "/placeholder.svg",
@@ -206,7 +206,7 @@ const Properties = () => {
               </div>
               <div className={viewMode === 'list' ? 'md:w-2/3 flex flex-col' : ''}>
                 <CardHeader>
-                  <CardTitle className="text-lg">{property.title}</CardTitle>
+                  <CardTitle className="text-lg">{property.property_name}</CardTitle>
                   <CardDescription className="flex items-center text-gray-600">
                     <MapPin className="h-4 w-4 mr-1" />
                     {property.location}

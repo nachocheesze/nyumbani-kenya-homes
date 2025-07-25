@@ -20,7 +20,7 @@ const TenantRent = () => {
         .from('tenants')
         .select(`
           *,
-          property:properties(title, address, rent_amount)
+          property:properties(property_name, address, rent_amount)
         `)
         .eq('user_id', user.id)
         .eq('status', 'active')
@@ -130,7 +130,7 @@ const TenantRent = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <p><strong>Property:</strong> {tenantRecord.property?.title}</p>
+              <p><strong>Property:</strong> {tenantRecord.property?.property_name}</p>
               <p><strong>Address:</strong> {tenantRecord.property?.address}</p>
               <p><strong>Move-in Date:</strong> {tenantRecord.move_in_date ? new Date(tenantRecord.move_in_date).toLocaleDateString() : 'N/A'}</p>
               <p><strong>Lease End:</strong> {tenantRecord.lease_end_date ? new Date(tenantRecord.lease_end_date).toLocaleDateString() : 'N/A'}</p>

@@ -44,7 +44,7 @@ const CaretakerTenants = () => {
         .select(`
           *,
           tenant_user:users!user_id(full_name, phone_number),
-          property:properties(title, address)
+          property:properties(property_name, address)
         `)
         .in('property_id', propertyIds);
 
@@ -132,7 +132,7 @@ const CaretakerTenants = () => {
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">{tenant.tenant_user?.full_name || 'Unknown Tenant'}</h3>
-                      <p className="text-sm text-gray-500">{tenant.property?.title || 'Unknown Property'}</p>
+                      <p className="text-sm text-gray-500">{tenant.property?.property_name || 'Unknown Property'}</p>
                       <p className="text-xs text-gray-400">{tenant.property?.address}</p>
                     </div>
                   </div>
