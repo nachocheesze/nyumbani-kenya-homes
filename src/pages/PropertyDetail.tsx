@@ -31,7 +31,7 @@ const PropertyDetail = () => {
   // Mock property data - in real app, fetch based on id
   const property = {
     id: 1,
-    title: "Modern 3BR Apartment in Westlands",
+    property_name: "Modern 3BR Apartment in Westlands",
     price: "KSh 85,000",
     location: "Westlands, Nairobi",
     images: ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg", "/placeholder.svg"],
@@ -196,7 +196,7 @@ const PropertyDetail = () => {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{property.title}</h1>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{property.property_name}</h1>
                   <div className="flex items-center text-gray-600 mb-2">
                     <MapPin className="h-5 w-5 mr-2" />
                     {property.location}

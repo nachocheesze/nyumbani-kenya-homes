@@ -3,63 +3,58 @@ import { UseFormReturn } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TenantFormData } from '../TenantOnboardingForm';
+import { PropertyFormData } from '../PropertyOnboardingForm';
 
-interface TenantStepIdentificationProps {
-  form: UseFormReturn<TenantFormData>;
+interface PropertyStepLegalProps {
+  form: UseFormReturn<PropertyFormData>;
 }
 
-const TenantStepIdentification: React.FC<TenantStepIdentificationProps> = ({ form }) => {
+const PropertyStepLegal: React.FC<PropertyStepLegalProps> = ({ form }) => {
+  const ownershipTypes = ['freehold', 'leasehold'];
+
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold mb-4">Identification Details</h2>
+      <h2 className="text-2xl font-bold">Legal & Documents</h2>
+      <p className="text-gray-600">Upload relevant legal documents for the property.</p>
+
+      {/* Ownership Type */}
       <FormField
         control={form.control}
-        name="id_type"
+        name="ownership_type"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>ID Document Type</FormLabel>
+            <FormLabel>Ownership Type</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a document type" />
+                  <SelectValue placeholder="Select ownership type" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="national_id">National ID</SelectItem>
-                <SelectItem value="passport">Passport</SelectItem>
-                <SelectItem value="alien_id">Alien ID</SelectItem>
-                <SelectItem value="drivers_license">Driver's License</SelectItem>
+                {ownershipTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <FormMessage />
           </FormItem>
         )}
       />
+
+      {/* Title Deed */}
       <FormField
         control={form.control}
-        name="id_number"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>ID Number</FormLabel>
-            <FormControl>
-              <Input placeholder="Enter the ID number" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="id_document_front"
+        name="title_deed_file"
         render={({ field: { value, onChange, ...fieldProps } }) => (
           <FormItem>
-            <FormLabel>ID Document Front</FormLabel>
+            <FormLabel>Title Deed (PDF)</FormLabel>
             <FormControl>
               <Input
                 {...fieldProps}
                 type="file"
-                accept="image/*"
+                accept=".pdf"
                 onChange={(event) => onChange(event.target.files && event.target.files[0])}
               />
             </FormControl>
@@ -68,17 +63,18 @@ const TenantStepIdentification: React.FC<TenantStepIdentificationProps> = ({ for
         )}
       />
 
+      {/* Lease Template (PDF) */}
       <FormField
         control={form.control}
-        name="id_document_back"
+        name="lease_template_file"
         render={({ field: { value, onChange, ...fieldProps } }) => (
           <FormItem>
-            <FormLabel>ID Document Back</FormLabel>
+            <FormLabel>Lease Template (PDF, Optional)</FormLabel>
             <FormControl>
               <Input
                 {...fieldProps}
                 type="file"
-                accept="image/*"
+                accept=".pdf"
                 onChange={(event) => onChange(event.target.files && event.target.files[0])}
               />
             </FormControl>
@@ -87,17 +83,18 @@ const TenantStepIdentification: React.FC<TenantStepIdentificationProps> = ({ for
         )}
       />
 
+      {/* Construction Permits (PDF, Optional) */}
       <FormField
         control={form.control}
-        name="selfie_photo"
+        name="construction_permit_file"
         render={({ field: { value, onChange, ...fieldProps } }) => (
           <FormItem>
-            <FormLabel>Selfie Photo</FormLabel>
+            <FormLabel>Construction Permits (PDF, Optional)</FormLabel>
             <FormControl>
               <Input
                 {...fieldProps}
                 type="file"
-                accept="image/*"
+                accept=".pdf"
                 onChange={(event) => onChange(event.target.files && event.target.files[0])}
               />
             </FormControl>
@@ -106,28 +103,20 @@ const TenantStepIdentification: React.FC<TenantStepIdentificationProps> = ({ for
         )}
       />
 
+      {/* NEMA Certificate (PDF, Optional) */}
       <FormField
         control={form.control}
-        name="kra_pin"
-        render={({ field }) => (
+        name="nema_certificate_file"
+        render={({ field: { value, onChange, ...fieldProps } }) => (
           <FormItem>
-            <FormLabel>KRA PIN</FormLabel>
+            <FormLabel>NEMA Certificate (PDF, Optional)</FormLabel>
             <FormControl>
-              <Input placeholder="Enter KRA PIN" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="nhif_insurance_no"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>NHIF/Insurance Number</FormLabel>
-            <FormControl>
-              <Input placeholder="Enter NHIF or Insurance Number" {...field} />
+              <Input
+                {...fieldProps}
+                type="file"
+                accept=".pdf"
+                onChange={(event) => onChange(event.target.files && event.target.files[0])}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -137,4 +126,4 @@ const TenantStepIdentification: React.FC<TenantStepIdentificationProps> = ({ for
   );
 };
 
-export default TenantStepIdentification;
+export default PropertyStepLegal;

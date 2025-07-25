@@ -16,12 +16,16 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const [properties, setProperties] = useState<{ id: string; title: string }[]>([]);
+  const [units, setUnits] = useState<{ id: string; unit_name: string }[]>([]);
+
+  const rentCycles = ["monthly", "quarterly", "annually"];
+  const leaseStatuses = ["pending", "active", "expired", "terminated"];
 
   useEffect(() => {
     const fetchProperties = async () => {
       if (!userProfile) return;
 
-      let query = supabase.from('properties').select('id, title');
+      let query = supabase.from('properties').select('id, property_name');
 
       if (userProfile.role === 'landlord') {
         query = query.eq('landlord_id', userProfile.id);
@@ -46,17 +50,48 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
     fetchProperties();
   }, [userProfile, toast]);
 
+  const selectedPropertyId = form.watch('property_id');
+
+  useEffect(() => {
+    const fetchUnits = async () => {
+      if (!selectedPropertyId) {
+        setUnits([]);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('units')
+        .select('id, unit_name')
+        .eq('property_id', selectedPropertyId);
+
+      if (error) {
+        console.error('Error fetching units:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load units for the selected property.",
+          variant: "destructive",
+        });
+      } else {
+        setUnits(data || []);
+      }
+    };
+
+    fetchUnits();
+  }, [selectedPropertyId, toast]);
+
   const paymentFrequencies = ['Monthly', 'Quarterly', 'Annually'];
 
   return (
     <div className="space-y-4">
+      <h2 className="text-xl font-semibold mb-4">Lease Details</h2>
       <FormField
         control={form.control}
         name="property_id"
+        rules={{ required: 'Property is required.' }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Property</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a property" />
@@ -65,7 +100,33 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
               <SelectContent>
                 {properties.map((property) => (
                   <SelectItem key={property.id} value={property.id}>
-                    {property.title}
+                    {property.property_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="unit_id"
+        rules={{ required: 'Unit is required.' }}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Unit</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value} disabled={units.length === 0}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a unit" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {units.map((unit) => (
+                  <SelectItem key={unit.id} value={unit.id}>
+                    {unit.unit_name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -79,6 +140,7 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
         <FormField
           control={form.control}
           name="move_in_date"
+          rules={{ required: 'Move-in date is required.' }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Move-in Date</FormLabel>
@@ -92,10 +154,11 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
 
         <FormField
           control={form.control}
-          name="lease_end_date"
+          name="lease_start_date"
+          rules={{ required: 'Lease start date is required.' }}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Lease End Date</FormLabel>
+              <FormLabel>Lease Start Date</FormLabel>
               <FormControl>
                 <Input type="date" {...field} />
               </FormControl>
@@ -105,10 +168,46 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
         />
       </div>
 
+      <FormField
+        control={form.control}
+        name="lease_end_date"
+        rules={{ required: 'Lease end date is required.' }}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Lease End Date</FormLabel>
+            <FormControl>
+              <Input type="date" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="lease_duration_months"
+        rules={{ required: 'Lease duration is required.' }}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Lease Duration (Months)</FormLabel>
+            <FormControl>
+              <Input
+                type="number"
+                placeholder="12"
+                {...field}
+                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="rent_amount"
+          rules={{ required: 'Rent amount is required.' }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Rent Amount (KES)</FormLabel>
@@ -127,10 +226,11 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
 
         <FormField
           control={form.control}
-          name="deposit_paid"
+          name="security_deposit_amount"
+          rules={{ required: 'Security deposit is required.' }}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Deposit Paid (KES)</FormLabel>
+              <FormLabel>Security Deposit (KES)</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -148,20 +248,21 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
-          name="payment_frequency"
+          name="rent_cycle"
+          rules={{ required: 'Rent cycle is required.' }}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Payment Frequency</FormLabel>
+              <FormLabel>Rent Cycle</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select payment frequency" />
+                    <SelectValue placeholder="Select rent cycle" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {paymentFrequencies.map((frequency) => (
-                    <SelectItem key={frequency} value={frequency}>
-                      {frequency}
+                  {rentCycles.map((cycle) => (
+                    <SelectItem key={cycle} value={cycle}>
+                      {cycle.charAt(0).toUpperCase() + cycle.slice(1)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -174,6 +275,7 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
         <FormField
           control={form.control}
           name="rent_due_date"
+          rules={{ required: 'Rent due date is required.' }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Rent Due Date (Day of Month)</FormLabel>
@@ -185,6 +287,47 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
           )}
         />
       </div>
+
+      <FormField
+        control={form.control}
+        name="payment_method"
+        rules={{ required: 'Payment method is required.' }}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Payment Method</FormLabel>
+            <FormControl>
+              <Input placeholder="e.g., M-Pesa, Bank Transfer" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="lease_status"
+        rules={{ required: 'Lease status is required.' }}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Lease Status</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select lease status" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {leaseStatuses.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
       <FormField
         control={form.control}

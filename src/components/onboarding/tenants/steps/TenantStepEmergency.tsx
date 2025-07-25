@@ -11,6 +11,7 @@ interface TenantStepEmergencyProps {
 const TenantStepEmergency: React.FC<TenantStepEmergencyProps> = ({ form }) => {
   return (
     <div className="space-y-4">
+      <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
       <FormField
         control={form.control}
         name="emergency_contact_full_name"
@@ -53,14 +54,17 @@ const TenantStepEmergency: React.FC<TenantStepEmergencyProps> = ({ form }) => {
         )}
       />
 
+      
+
+      <h3 className="text-lg font-semibold mt-6">Guarantor Information (Optional)</h3>
       <FormField
         control={form.control}
-        name="emergency_contact_email"
+        name="guarantor_full_name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Email</FormLabel>
+            <FormLabel>Guarantor Full Name</FormLabel>
             <FormControl>
-              <Input type="email" placeholder="Enter emergency contact's email" {...field} />
+              <Input placeholder="Enter guarantor's full name" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -69,12 +73,26 @@ const TenantStepEmergency: React.FC<TenantStepEmergencyProps> = ({ form }) => {
 
       <FormField
         control={form.control}
-        name="emergency_contact_address"
+        name="guarantor_phone_number"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Address</FormLabel>
+            <FormLabel>Guarantor Phone Number</FormLabel>
             <FormControl>
-              <Input placeholder="Enter emergency contact's address" {...field} />
+              <Input placeholder="Enter guarantor's phone number" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="guarantor_email"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Guarantor Email</FormLabel>
+            <FormControl>
+              <Input type="email" placeholder="Enter guarantor's email" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>

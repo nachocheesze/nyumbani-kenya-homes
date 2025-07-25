@@ -62,6 +62,18 @@
 
 ---
 
+## 🗺 Routing
+
+Property management routes have been consolidated under `/dashboard/landlord/properties`.
+
+- `/dashboard/landlord/properties`: View and manage your properties.
+- `/dashboard/landlord/properties/add`: Add a new property.
+- `/dashboard/landlord/properties/edit/:id`: Edit an existing property.
+
+Legacy routes under `/dashboard/property-management/*` will now redirect to `/dashboard/landlord/properties`.
+
+---
+
 ## 🔐 Roles and Access (Sample)
 
 | Role               | Can Add Property | Can Add Tenant | Special Features                             |
