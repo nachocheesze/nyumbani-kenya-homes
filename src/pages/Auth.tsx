@@ -220,6 +220,7 @@ const Auth = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             className="w-full pr-12"
+                            autoComplete="current-password"
                           />
                           <button
                             type="button"
@@ -318,6 +319,7 @@ const Auth = () => {
                           onChange={(e) => setPassword(e.target.value)}
                           required
                           className="w-full pr-12"
+                          autoComplete="new-password"
                         />
                         <button
                           type="button"

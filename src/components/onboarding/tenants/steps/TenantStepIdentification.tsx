@@ -2,6 +2,7 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TenantFormData } from '../TenantOnboardingForm';
 
 interface TenantStepIdentificationProps {
@@ -11,6 +12,43 @@ interface TenantStepIdentificationProps {
 const TenantStepIdentification: React.FC<TenantStepIdentificationProps> = ({ form }) => {
   return (
     <div className="space-y-4">
+      <h2 className="text-xl font-semibold mb-4">Identification Details</h2>
+      <FormField
+        control={form.control}
+        name="id_type"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>ID Document Type</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a document type" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="national_id">National ID</SelectItem>
+                <SelectItem value="passport">Passport</SelectItem>
+                <SelectItem value="alien_id">Alien ID</SelectItem>
+                <SelectItem value="drivers_license">Driver's License</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="id_number"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>ID Number</FormLabel>
+            <FormControl>
+              <Input placeholder="Enter the ID number" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
       <FormField
         control={form.control}
         name="id_document_front"
@@ -51,10 +89,10 @@ const TenantStepIdentification: React.FC<TenantStepIdentificationProps> = ({ for
 
       <FormField
         control={form.control}
-        name="passport_photo"
+        name="selfie_photo"
         render={({ field: { value, onChange, ...fieldProps } }) => (
           <FormItem>
-            <FormLabel>Passport Photo</FormLabel>
+            <FormLabel>Selfie Photo</FormLabel>
             <FormControl>
               <Input
                 {...fieldProps}
@@ -84,12 +122,12 @@ const TenantStepIdentification: React.FC<TenantStepIdentificationProps> = ({ for
 
       <FormField
         control={form.control}
-        name="occupation"
+        name="nhif_insurance_no"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Occupation</FormLabel>
+            <FormLabel>NHIF/Insurance Number</FormLabel>
             <FormControl>
-              <Input placeholder="Enter occupation" {...field} />
+              <Input placeholder="Enter NHIF or Insurance Number" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>

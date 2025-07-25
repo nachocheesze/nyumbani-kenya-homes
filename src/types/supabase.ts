@@ -62,6 +62,56 @@ export type Database = {
           },
         ]
       }
+      blocks: {
+        Row: {
+          amenities: string[] | null
+          created_at: string | null
+          floor_count: number | null
+          has_elevator: boolean | null
+          id: string
+          name: string
+          notes: string | null
+          property_id: string
+          unit_count: number
+          unit_types: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          amenities?: string[] | null
+          created_at?: string | null
+          floor_count?: number | null
+          has_elevator?: boolean | null
+          id?: string
+          name: string
+          notes?: string | null
+          property_id: string
+          unit_count: number
+          unit_types?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          amenities?: string[] | null
+          created_at?: string | null
+          floor_count?: number | null
+          has_elevator?: boolean | null
+          id?: string
+          name?: string
+          notes?: string | null
+          property_id?: string
+          unit_count?: number
+          unit_types?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocks_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       caretaker_assignments: {
         Row: {
           assigned_at: string | null
@@ -161,7 +211,7 @@ export type Database = {
           name: string
           phone: string
           relationship: string
-          tenant_user_id: string
+          tenant_id: string
           updated_at: string | null
         }
         Insert: {
@@ -171,7 +221,7 @@ export type Database = {
           name: string
           phone: string
           relationship: string
-          tenant_user_id: string
+          tenant_id: string
           updated_at?: string | null
         }
         Update: {
@@ -181,15 +231,15 @@ export type Database = {
           name?: string
           phone?: string
           relationship?: string
-          tenant_user_id?: string
+          tenant_id?: string
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "emergency_contacts_tenant_user_id_fkey"
-            columns: ["tenant_user_id"]
+            foreignKeyName: "emergency_contacts_new_tenant_id_fkey"
+            columns: ["tenant_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -254,6 +304,88 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lease_agreements: {
+        Row: {
+          created_at: string | null
+          id: string
+          lease_agreement_url: string | null
+          lease_duration_months: number | null
+          lease_end_date: string | null
+          lease_start_date: string | null
+          lease_status: string | null
+          move_in_date: string | null
+          payment_method: string | null
+          property_id: string | null
+          rent_amount: number | null
+          rent_cycle: string | null
+          rent_due_date: number | null
+          security_deposit_amount: number | null
+          tenant_id: string | null
+          unit_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lease_agreement_url?: string | null
+          lease_duration_months?: number | null
+          lease_end_date?: string | null
+          lease_start_date?: string | null
+          lease_status?: string | null
+          move_in_date?: string | null
+          payment_method?: string | null
+          property_id?: string | null
+          rent_amount?: number | null
+          rent_cycle?: string | null
+          rent_due_date?: number | null
+          security_deposit_amount?: number | null
+          tenant_id?: string | null
+          unit_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lease_agreement_url?: string | null
+          lease_duration_months?: number | null
+          lease_end_date?: string | null
+          lease_start_date?: string | null
+          lease_status?: string | null
+          move_in_date?: string | null
+          payment_method?: string | null
+          property_id?: string | null
+          rent_amount?: number | null
+          rent_cycle?: string | null
+          rent_due_date?: number | null
+          security_deposit_amount?: number | null
+          tenant_id?: string | null
+          unit_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lease_agreements_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lease_agreements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lease_agreements_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
             referencedColumns: ["id"]
           },
         ]
@@ -385,46 +517,49 @@ export type Database = {
           address: string
           agent_id: string | null
           amenities: string[] | null
+          approx_unit_count: number | null
           available_from: string | null
           bathrooms: number | null
           bedrooms: number | null
           category: Database["public"]["Enums"]["property_category"] | null
           city: string
-          common_amenities: string | null
           construction_permit_url: string | null
           county: string
           created_at: string | null
           deposit_amount: number | null
           description: string | null
           features: string[] | null
-          floor_plan_url: string | null
+          floor_count: number | null
+          has_elevator: boolean | null
           has_unit_variations: boolean | null
           id: string
           images: string[] | null
           is_available: boolean | null
-          is_furnished: boolean | null
           landlord_id: string | null
           lease_template_url: string | null
           main_image_url: string | null
-          nearby_landmarks: string | null
+          managed_by: string | null
+          nearest_landmark: string | null
+          neighborhood: string | null
           nema_certificate_url: string | null
           number_of_blocks: number | null
           ownership_type:
             | Database["public"]["Enums"]["property_ownership_type"]
             | null
-          pets_allowed: boolean | null
           property_name: string
           property_structure:
             | Database["public"]["Enums"]["property_structure"]
             | null
           property_type: string
           rent_amount: number | null
-          shared_amenities: string[] | null
           shared_utilities: string | null
+          status: string | null
+          structure_type: string | null
+          tags: string | null
           title_deed_file_url: string | null
           total_units: number | null
           updated_at: string | null
-          utilities_included: string[] | null
+          video_tour_url: string | null
           video_url: string | null
           virtual_tour_url: string | null
         }
@@ -432,46 +567,49 @@ export type Database = {
           address: string
           agent_id?: string | null
           amenities?: string[] | null
+          approx_unit_count?: number | null
           available_from?: string | null
           bathrooms?: number | null
           bedrooms?: number | null
           category?: Database["public"]["Enums"]["property_category"] | null
           city: string
-          common_amenities?: string | null
           construction_permit_url?: string | null
           county: string
           created_at?: string | null
           deposit_amount?: number | null
           description?: string | null
           features?: string[] | null
-          floor_plan_url?: string | null
+          floor_count?: number | null
+          has_elevator?: boolean | null
           has_unit_variations?: boolean | null
           id?: string
           images?: string[] | null
           is_available?: boolean | null
-          is_furnished?: boolean | null
           landlord_id?: string | null
           lease_template_url?: string | null
           main_image_url?: string | null
-          nearby_landmarks?: string | null
+          managed_by?: string | null
+          nearest_landmark?: string | null
+          neighborhood?: string | null
           nema_certificate_url?: string | null
           number_of_blocks?: number | null
           ownership_type?:
             | Database["public"]["Enums"]["property_ownership_type"]
             | null
-          pets_allowed?: boolean | null
           property_name: string
           property_structure?:
             | Database["public"]["Enums"]["property_structure"]
             | null
           property_type: string
           rent_amount?: number | null
-          shared_amenities?: string[] | null
           shared_utilities?: string | null
+          status?: string | null
+          structure_type?: string | null
+          tags?: string | null
           title_deed_file_url?: string | null
           total_units?: number | null
           updated_at?: string | null
-          utilities_included?: string[] | null
+          video_tour_url?: string | null
           video_url?: string | null
           virtual_tour_url?: string | null
         }
@@ -479,46 +617,49 @@ export type Database = {
           address?: string
           agent_id?: string | null
           amenities?: string[] | null
+          approx_unit_count?: number | null
           available_from?: string | null
           bathrooms?: number | null
           bedrooms?: number | null
           category?: Database["public"]["Enums"]["property_category"] | null
           city?: string
-          common_amenities?: string | null
           construction_permit_url?: string | null
           county?: string
           created_at?: string | null
           deposit_amount?: number | null
           description?: string | null
           features?: string[] | null
-          floor_plan_url?: string | null
+          floor_count?: number | null
+          has_elevator?: boolean | null
           has_unit_variations?: boolean | null
           id?: string
           images?: string[] | null
           is_available?: boolean | null
-          is_furnished?: boolean | null
           landlord_id?: string | null
           lease_template_url?: string | null
           main_image_url?: string | null
-          nearby_landmarks?: string | null
+          managed_by?: string | null
+          nearest_landmark?: string | null
+          neighborhood?: string | null
           nema_certificate_url?: string | null
           number_of_blocks?: number | null
           ownership_type?:
             | Database["public"]["Enums"]["property_ownership_type"]
             | null
-          pets_allowed?: boolean | null
           property_name?: string
           property_structure?:
             | Database["public"]["Enums"]["property_structure"]
             | null
           property_type?: string
           rent_amount?: number | null
-          shared_amenities?: string[] | null
           shared_utilities?: string | null
+          status?: string | null
+          structure_type?: string | null
+          tags?: string | null
           title_deed_file_url?: string | null
           total_units?: number | null
           updated_at?: string | null
-          utilities_included?: string[] | null
+          video_tour_url?: string | null
           video_url?: string | null
           virtual_tour_url?: string | null
         }
@@ -621,58 +762,55 @@ export type Database = {
           },
         ]
       }
-      property_units: {
+      property_payment_methods: {
         Row: {
-          amenities: string[] | null
-          bathrooms: number | null
-          bedrooms: number | null
-          deposit_amount: number | null
-          features: string[] | null
+          account_name: string | null
+          account_number: string
+          bank_name: string | null
+          branch: string | null
+          channel: string | null
+          created_at: string
           id: string
-          is_occupied: boolean | null
+          method_type: string
           notes: string | null
           property_id: string
-          rent_amount: number | null
-          size_sqm: number | null
-          status: string | null
-          tenant_id: string | null
-          unit_name: string
+          provider: string | null
+          swift_code: string | null
+          updated_at: string
         }
         Insert: {
-          amenities?: string[] | null
-          bathrooms?: number | null
-          bedrooms?: number | null
-          deposit_amount?: number | null
-          features?: string[] | null
+          account_name?: string | null
+          account_number: string
+          bank_name?: string | null
+          branch?: string | null
+          channel?: string | null
+          created_at?: string
           id?: string
-          is_occupied?: boolean | null
+          method_type: string
           notes?: string | null
           property_id: string
-          rent_amount?: number | null
-          size_sqm?: number | null
-          status?: string | null
-          tenant_id?: string | null
-          unit_name: string
+          provider?: string | null
+          swift_code?: string | null
+          updated_at?: string
         }
         Update: {
-          amenities?: string[] | null
-          bathrooms?: number | null
-          bedrooms?: number | null
-          deposit_amount?: number | null
-          features?: string[] | null
+          account_name?: string | null
+          account_number?: string
+          bank_name?: string | null
+          branch?: string | null
+          channel?: string | null
+          created_at?: string
           id?: string
-          is_occupied?: boolean | null
+          method_type?: string
           notes?: string | null
           property_id?: string
-          rent_amount?: number | null
-          size_sqm?: number | null
-          status?: string | null
-          tenant_id?: string | null
-          unit_number?: string
+          provider?: string | null
+          swift_code?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "property_units_property_id_fkey"
+            foreignKeyName: "payments_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
@@ -940,13 +1078,98 @@ export type Database = {
           },
         ]
       }
+      tenant_consents: {
+        Row: {
+          created_at: string | null
+          data_consent_given: boolean
+          id: string
+          lease_agreement_consent_given: boolean
+          signature_image_url: string | null
+          signed_at: string | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_consent_given: boolean
+          id?: string
+          lease_agreement_consent_given: boolean
+          signature_image_url?: string | null
+          signed_at?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_consent_given?: boolean
+          id?: string
+          lease_agreement_consent_given?: boolean
+          signature_image_url?: string | null
+          signed_at?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_consents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_contacts: {
+        Row: {
+          contact_type: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string
+          id: string
+          phone_number: string
+          relationship: string | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          contact_type?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          phone_number: string
+          relationship?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          contact_type?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          phone_number?: string
+          relationship?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_contacts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_documents: {
         Row: {
           created_at: string | null
           document_type: string
           file_url: string
           id: string
-          tenant_user_id: string
+          tenant_id: string
           updated_at: string | null
         }
         Insert: {
@@ -954,7 +1177,7 @@ export type Database = {
           document_type: string
           file_url: string
           id?: string
-          tenant_user_id: string
+          tenant_id: string
           updated_at?: string | null
         }
         Update: {
@@ -962,20 +1185,20 @@ export type Database = {
           document_type?: string
           file_url?: string
           id?: string
-          tenant_user_id?: string
+          tenant_id?: string
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_documents_tenant_user_id_fkey"
-            columns: ["tenant_user_id"]
+            foreignKeyName: "tenant_documents_new_tenant_id_fkey"
+            columns: ["tenant_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
       }
-      tenant_verifications: {
+      tenant_identifications: {
         Row: {
           created_at: string | null
           id: string
@@ -986,7 +1209,7 @@ export type Database = {
           kra_pin: string | null
           nhif_number: string | null
           selfie_with_id_url: string | null
-          tenant_user_id: string
+          tenant_id: string
           updated_at: string | null
         }
         Insert: {
@@ -999,7 +1222,7 @@ export type Database = {
           kra_pin?: string | null
           nhif_number?: string | null
           selfie_with_id_url?: string | null
-          tenant_user_id: string
+          tenant_id: string
           updated_at?: string | null
         }
         Update: {
@@ -1012,15 +1235,60 @@ export type Database = {
           kra_pin?: string | null
           nhif_number?: string | null
           selfie_with_id_url?: string | null
-          tenant_user_id?: string
+          tenant_id?: string
           updated_at?: string | null
         }
         Relationships: [
           {
+            foreignKeyName: "tenant_identifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tenant_verifications_tenant_user_id_fkey"
-            columns: ["tenant_user_id"]
+            columns: ["tenant_id"]
             isOneToOne: true
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_preferences: {
+        Row: {
+          contact_method: string | null
+          created_at: string | null
+          id: string
+          language_preference: string | null
+          notification_opt_ins: Json | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          contact_method?: string | null
+          created_at?: string | null
+          id?: string
+          language_preference?: string | null
+          notification_opt_ins?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          contact_method?: string | null
+          created_at?: string | null
+          id?: string
+          language_preference?: string | null
+          notification_opt_ins?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_preferences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -1028,54 +1296,105 @@ export type Database = {
       tenants: {
         Row: {
           created_at: string | null
+          date_of_birth: string | null
           deposit_paid: number | null
+          email: string | null
+          form_completion_date: string | null
+          full_name: string | null
+          gender: Database["public"]["Enums"]["gender_type"] | null
           id: string
+          income_range: string | null
+          invitation_status:
+            | Database["public"]["Enums"]["invitation_status_type"]
+            | null
           landlord_id: string | null
           lease_agreement_url: string | null
           lease_end_date: string | null
+          marital_status:
+            | Database["public"]["Enums"]["marital_status_type"]
+            | null
           move_in_date: string | null
+          nationality: string | null
+          occupation: string | null
           payment_cycle: string | null
           payment_method: string | null
+          phone_number: string | null
+          profile_photo_url: string | null
           property_id: string | null
           rent_amount: number
           rent_due_day: number | null
           status: string | null
+          tenant_id: string | null
+          tenant_score: number | null
           updated_at: string | null
-          user_id: string | null
         }
         Insert: {
           created_at?: string | null
+          date_of_birth?: string | null
           deposit_paid?: number | null
+          email?: string | null
+          form_completion_date?: string | null
+          full_name?: string | null
+          gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
+          income_range?: string | null
+          invitation_status?:
+            | Database["public"]["Enums"]["invitation_status_type"]
+            | null
           landlord_id?: string | null
           lease_agreement_url?: string | null
           lease_end_date?: string | null
+          marital_status?:
+            | Database["public"]["Enums"]["marital_status_type"]
+            | null
           move_in_date?: string | null
+          nationality?: string | null
+          occupation?: string | null
           payment_cycle?: string | null
           payment_method?: string | null
+          phone_number?: string | null
+          profile_photo_url?: string | null
           property_id?: string | null
           rent_amount: number
           rent_due_day?: number | null
           status?: string | null
+          tenant_id?: string | null
+          tenant_score?: number | null
           updated_at?: string | null
-          user_id?: string | null
         }
         Update: {
           created_at?: string | null
+          date_of_birth?: string | null
           deposit_paid?: number | null
+          email?: string | null
+          form_completion_date?: string | null
+          full_name?: string | null
+          gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
+          income_range?: string | null
+          invitation_status?:
+            | Database["public"]["Enums"]["invitation_status_type"]
+            | null
           landlord_id?: string | null
           lease_agreement_url?: string | null
           lease_end_date?: string | null
+          marital_status?:
+            | Database["public"]["Enums"]["marital_status_type"]
+            | null
           move_in_date?: string | null
+          nationality?: string | null
+          occupation?: string | null
           payment_cycle?: string | null
           payment_method?: string | null
+          phone_number?: string | null
+          profile_photo_url?: string | null
           property_id?: string | null
           rent_amount?: number
           rent_due_day?: number | null
           status?: string | null
+          tenant_id?: string | null
+          tenant_score?: number | null
           updated_at?: string | null
-          user_id?: string | null
         }
         Relationships: [
           {
@@ -1094,7 +1413,7 @@ export type Database = {
           },
           {
             foreignKeyName: "tenants_user_id_fkey"
-            columns: ["user_id"]
+            columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -1103,38 +1422,88 @@ export type Database = {
       }
       units: {
         Row: {
+          available_from: string | null
+          bathrooms: number | null
+          bedrooms: number | null
+          block_id: string | null
+          block_name: string | null
           created_at: string | null
           deposit_amount: number | null
           id: string
-          is_available: boolean | null
+          is_negotiable: boolean | null
+          is_occupied: boolean | null
+          notes: string | null
+          payment_cycle: string | null
           property_id: string
           rent_amount: number | null
+          rent_due_day: number | null
+          size: string | null
+          tenant_id: string | null
           unit_name: string
+          updated_at: string | null
         }
         Insert: {
+          available_from?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          block_id?: string | null
+          block_name?: string | null
           created_at?: string | null
           deposit_amount?: number | null
           id?: string
-          is_available?: boolean | null
+          is_negotiable?: boolean | null
+          is_occupied?: boolean | null
+          notes?: string | null
+          payment_cycle?: string | null
           property_id: string
           rent_amount?: number | null
+          rent_due_day?: number | null
+          size?: string | null
+          tenant_id?: string | null
           unit_name: string
+          updated_at?: string | null
         }
         Update: {
+          available_from?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          block_id?: string | null
+          block_name?: string | null
           created_at?: string | null
           deposit_amount?: number | null
           id?: string
-          is_available?: boolean | null
+          is_negotiable?: boolean | null
+          is_occupied?: boolean | null
+          notes?: string | null
+          payment_cycle?: string | null
           property_id?: string
           rent_amount?: number | null
+          rent_due_day?: number | null
+          size?: string | null
+          tenant_id?: string | null
           unit_name?: string
+          updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "units_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "blocks"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "units_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "units_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -1202,7 +1571,10 @@ export type Database = {
       }
     }
     Enums: {
-      property_category: "rent" | "sale" | "short_term"
+      gender_type: "male" | "female" | "other"
+      invitation_status_type: "pending" | "accepted" | "rejected"
+      marital_status_type: "single" | "married" | "divorced" | "widowed"
+      property_category: "residential" | "commercial" | "industrial" | "land"
       property_document_type:
         | "title_deed"
         | "lease_template"
@@ -1347,7 +1719,10 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      property_category: ["rent", "sale", "short_term"],
+      gender_type: ["male", "female", "other"],
+      invitation_status_type: ["pending", "accepted", "rejected"],
+      marital_status_type: ["single", "married", "divorced", "widowed"],
+      property_category: ["residential", "commercial", "industrial", "land"],
       property_document_type: [
         "title_deed",
         "lease_template",

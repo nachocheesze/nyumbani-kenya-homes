@@ -18,6 +18,7 @@ const TenantStepAdditionalDocuments: React.FC<TenantStepAdditionalDocumentsProps
 
   return (
     <div className="space-y-4">
+      <h2 className="text-xl font-semibold mb-4">Upload Documents</h2>
       <FormLabel>Additional Documents</FormLabel>
       {fields.map((item, index) => (
         <div key={item.id} className="flex items-end space-x-2">
