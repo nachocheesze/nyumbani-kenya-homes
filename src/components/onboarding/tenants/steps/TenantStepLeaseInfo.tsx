@@ -16,7 +16,7 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const [properties, setProperties] = useState<{ id: string; title: string }[]>([]);
-  const [units, setUnits] = useState<{ id: string; unit_number: string }[]>([]);
+  const [units, setUnits] = useState<{ id: string; unit_name: string }[]>([]);
 
   const rentCycles = ["monthly", "quarterly", "annually"];
   const leaseStatuses = ["pending", "active", "expired", "terminated"];
@@ -60,8 +60,8 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
       }
 
       const { data, error } = await supabase
-        .from('property_units')
-        .select('id, unit_number')
+        .from('units')
+        .select('id, unit_name')
         .eq('property_id', selectedPropertyId);
 
       if (error) {
@@ -126,7 +126,7 @@ const TenantStepLeaseInfo: React.FC<TenantStepLeaseInfoProps> = ({ form }) => {
               <SelectContent>
                 {units.map((unit) => (
                   <SelectItem key={unit.id} value={unit.id}>
-                    {unit.unit_number}
+                    {unit.unit_name}
                   </SelectItem>
                 ))}
               </SelectContent>
