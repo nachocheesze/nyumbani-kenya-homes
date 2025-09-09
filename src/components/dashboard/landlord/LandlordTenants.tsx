@@ -1,63 +1,46 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, Phone, Mail, Home, Edit, Trash2, Plus } from 'lucide-react';
+import { Users, Plus, Eye, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Tenant } from '@/types/tenant';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Badge } from '@/components/ui/badge';
 
 const LandlordTenants = () => {
   const { userProfile } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const pageSize = 10; // adjust if needed
-  const [totalCount, setTotalCount] = useState(0);
-
-  const totalPages = Math.ceil(totalCount / pageSize);
 
   const fetchTenants = useCallback(async () => {
     if (!userProfile) return;
 
     try {
       setLoading(true);
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-
       let query = supabase
         .from('tenants')
-        .select('*', { count: 'exact' });
-      
-      if (userProfile.role === 'landlord') {
-        query = query.eq('landlord_id', userProfile.id);
-      } else if (userProfile.role === 'agent') {
-        query = query.eq('agent_id', userProfile.id);
-      }
-      
-      const { data, error, count } = await query
-        .order('created_at', { ascending: false })
-        .range(from, to);
+        .select('*')
+        .eq('landlord_id', userProfile.id)
+        .order('created_at', { ascending: false });
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setTenants(data || []);
-      setTotalCount(count || 0);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching tenants:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load tenants",
-        variant: "destructive"
+      toast.error('Failed to load tenants', {
+        description: error.message,
       });
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, userProfile, toast]);
+  }, [userProfile]);
 
   useEffect(() => {
     fetchTenants();
@@ -74,22 +57,16 @@ const LandlordTenants = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Tenant deleted successfully"
-      });
-      
-      fetchTenants();
-    } catch (error) {
+      toast.success('Tenant deleted successfully');
+      fetchTenants(); // Refresh the list
+    } catch (error: any) {
       console.error('Error deleting tenant:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete tenant",
-        variant: "destructive"
+      toast.error('Failed to delete tenant', {
+        description: error.message,
       });
     }
   };
-  
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -102,8 +79,8 @@ const LandlordTenants = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tenants</h1>
-          <p className="text-gray-600">Manage your tenant relationships</p>
+          <h1 className="text-2xl font-bold">My Tenants</h1>
+          <p className="text-sm text-muted-foreground">Manage your tenants and their onboarding process.</p>
         </div>
         <Link to="/dashboard/landlord/tenants/add">
           <Button className="flex items-center gap-2">
@@ -113,56 +90,22 @@ const LandlordTenants = () => {
         </Link>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-emerald-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Active Tenants</p>
-                <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Vacant Units</p>
-                <p className="text-2xl font-bold text-gray-900">-</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Collection Rate</p>
-                <p className="text-2xl font-bold text-gray-900">-</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tenants List */}
       <Card>
         <CardHeader>
-          <CardTitle>All Tenants ({totalCount})</CardTitle>
+          <CardTitle>Tenants ({tenants.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {tenants.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500 mb-4">No tenants found</p>
-              <Button onClick={() => navigate('/dashboard/landlord/tenants/add')}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Your First Tenant
-              </Button>
+              <Users className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No tenants found</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by adding your first tenant.</p>
+              <div className="mt-6">
+                <Button onClick={() => navigate('/dashboard/landlord/tenants/add')}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Tenant
+                </Button>
+              </div>
             </div>
           ) : (
             <Table>
@@ -171,11 +114,8 @@ const LandlordTenants = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
-                  <TableHead>Property</TableHead>
-                  <TableHead>Unit</TableHead>
-                  <TableHead>Rent</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -184,72 +124,52 @@ const LandlordTenants = () => {
                     <TableCell className="font-medium">{tenant.full_name}</TableCell>
                     <TableCell>{tenant.email}</TableCell>
                     <TableCell>{tenant.phone_number}</TableCell>
-                    <TableCell>{tenant.property_id}</TableCell> {/* Assuming property_id exists, might need to fetch property name */}
-                    <TableCell>{tenant.unit_id}</TableCell> {/* Assuming unit_id exists, might need to fetch unit name */}
-                    <TableCell>{tenant.rent_amount ? `KES ${tenant.rent_amount.toLocaleString()}` : '-'}</TableCell>
                     <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        tenant.status === 'active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {tenant.status}
-                      </span>
+                      <Badge variant={tenant.onboarding_status === 'complete' ? 'success' : 'secondary'}>
+                        {tenant.onboarding_status === 'complete' ? 'Complete' : 'Draft'}
+                      </Badge>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => navigate(`/dashboard/landlord/tenants/edit/${tenant.id}`)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        {(userProfile?.role === 'super_admin' || userProfile?.role === 'admin' || tenant.landlord_id === userProfile?.id) && (
-                          <Button 
-                            variant="outline" 
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        {tenant.onboarding_status === 'complete' ? (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/dashboard/landlord/tenants/${tenant.id}`)} // Corrected View path
+                            >
+                              <Eye className="h-4 w-4 mr-1" /> View
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/dashboard/landlord/tenants/${tenant.id}/edit`)}
+                            >
+                              <Edit className="h-4 w-4 mr-1" /> Edit
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            variant="default"
                             size="sm"
-                            onClick={() => handleDelete(tenant.id)}
+                            onClick={() => navigate(`/dashboard/landlord/tenants/${tenant.id}/edit`)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            Finish Setup
                           </Button>
                         )}
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(tenant.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          )}
-          {tenants.length > 0 && (
-            <div className="mt-4">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      onClick={() => setPage(page - 1)}
-                      aria-disabled={page <= 1}
-                    />
-                  </PaginationItem>
-                  {[...Array(totalPages)].map((_, i) => (
-                    <PaginationItem key={i}>
-                      <PaginationLink 
-                        onClick={() => setPage(i + 1)} 
-                        isActive={page === i + 1}
-                      >
-                        {i + 1}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() => setPage(page + 1)}
-                      aria-disabled={page >= totalPages}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
           )}
         </CardContent>
       </Card>

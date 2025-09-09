@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -6,491 +7,204 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+
+// Import Step Components (to be created)
 import TenantStepPersonalInfo from './steps/TenantStepPersonalInfo';
 import TenantStepLeaseInfo from './steps/TenantStepLeaseInfo';
 import TenantStepIdentification from './steps/TenantStepIdentification';
 import TenantStepEmergency from './steps/TenantStepEmergency';
 import TenantStepAdditionalDocuments from './steps/TenantStepAdditionalDocuments';
-import TenantStepCommunicationPreferences from './steps/TenantStepCommunicationPreferences';
-import TenantStepDeclarationsConsents from './steps/TenantStepDeclarationsConsents';
 import TenantStepReview from './steps/TenantStepReview';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { v4 as uuidv4 } from 'uuid';
 
-const tenantSchema = z.object({
-  // Step 1: Personal Details
-  full_name: z.string().optional(),
-  email: z.string().email('Invalid email address').optional(),
-  phone_number: z.string().optional(),
+// Define the full tenant schema for validation across all steps
+const tenantOnboardingSchema = z.object({
+  // Step 1: Personal Information
+  full_name: z.string().min(3, "Full name is required"),
+  email: z.string().email("Invalid email address"),
+  phone_number: z.string().min(10, "A valid phone number is required"),
   date_of_birth: z.string().optional(),
-  gender: z.enum(['male', 'female', 'other']).optional(),
-  nationality: z.string().optional(),
-  marital_status: z.string().optional(),
   occupation: z.string().optional(),
-  income_range: z.string().optional(),
-  profile_photo: z.any().optional(), // File object
 
-  // Step 2: National ID & Verification
-  id_type: z.enum(['national_id', 'passport', 'driving_license']).optional(),
-  id_number: z.string().optional(),
-  id_document_front: z.any().optional(), // File object
-  id_document_back: z.any().optional(), // File object
-  selfie_photo: z.any().optional(), // File object
-  kra_pin: z.string().optional(),
-  nhif_insurance_no: z.string().optional(),
+  // Step 2: Tenancy Details
+  property_id: z.string().uuid("Please select a property"),
+  unit_id: z.string().uuid("Please select a unit"),
+  lease_start_date: z.string(),
+  lease_end_date: z.string(),
+  rent_amount: z.number().min(0, "Rent must be a positive number"),
+  deposit_amount: z.number().min(0, "Deposit must be a positive number").optional(),
 
-  // Step 3: Tenancy Details
-  property_id: z.string().optional(),
-  unit_id: z.string().optional(),
-  move_in_date: z.string().optional(),
-  lease_start_date: z.string().optional(),
-  lease_end_date: z.string().optional(),
-  lease_duration_months: z.number().optional(),
-  rent_amount: z.number().optional(),
-  rent_cycle: z.enum(['monthly', 'quarterly', 'annually']).optional(),
-  security_deposit_amount: z.number().optional(),
-  payment_method: z.string().optional(),
-  rent_due_date: z.number().optional(),
-  lease_status: z.enum(['pending', 'active', 'expired', 'terminated']).optional(),
-  lease_agreement_file: z.any().optional(), // File object
+  // Step 3: Identification
+  id_type: z.enum(["national_id", "passport", "alien_id"]),
+  id_number: z.string().min(5, "ID number is required"),
+  id_document_front: z.any().optional(),
+  id_document_back: z.any().optional(),
 
-  // Step 4: Supporting Documents
-  additional_documents: z.array(z.object({
-    file: z.any().optional(), // File object
-    caption: z.string().optional(),
-  })).optional(),
+  // Step 4: Emergency Contact
+  emergency_contact_name: z.string().min(3, "Contact name is required"),
+  emergency_contact_phone: z.string().min(10, "A valid phone number is required"),
+  emergency_contact_relationship: z.string().min(2, "Relationship is required"),
 
-  // Step 5: Emergency & Alternate Contacts
-  emergency_contact_full_name: z.string().optional(),
-  emergency_contact_relationship: z.string().optional(),
-  emergency_contact_phone_number: z.string().optional(),
-  emergency_contact_email: z.string().email('Invalid email address').optional(),
-  guarantor_full_name: z.string().optional(),
-  guarantor_phone_number: z.string().optional(),
-  guarantor_email: z.string().email('Invalid email address').optional(),
+  // Step 5: Additional Documents
+  employment_letter: z.any().optional(),
+  payslips: z.any().optional(),
+  bank_statements: z.any().optional(),
 
-  // Step 6: Communication Preferences
-  contact_method: z.enum(['email', 'sms', 'whatsapp', 'phone_call']).optional(),
-  language_preference: z.enum(['en', 'sw', 'other']).optional(),
-  notification_opt_ins: z.record(z.boolean()).optional(), // e.g., { rent_reminders: true, maintenance_updates: false }
-
-  // Step 7: Declarations & Consents
-  data_consent_given: z.boolean().optional(),
-  lease_agreement_consent_given: z.boolean().optional(),
-  signature_image: z.any().optional(), // File object
+  // Internal fields
+  landlord_id: z.string().uuid(),
 });
 
-export type TenantFormData = z.infer<typeof tenantSchema>;
+export type TenantOnboardingFormData = z.infer<typeof tenantOnboardingSchema>;
 
-interface TenantOnboardingFormProps {
-  editingTenant?: TenantFormData & { id: string };
-}
+const fetchTenant = async (tenantId: string) => {
+  const { data, error } = await supabase
+    .from('tenants')
+    .select('*')
+    .eq('id', tenantId)
+    .single();
+  if (error) throw new Error('Failed to fetch tenant data');
+  return data;
+};
 
-const TenantOnboardingForm: React.FC<TenantOnboardingFormProps> = ({ editingTenant }) => {
+const TenantOnboardingForm: React.FC = () => {
+  const { id: tenantId } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { userProfile } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<TenantFormData>({
-    resolver: zodResolver(tenantSchema),
-    defaultValues: editingTenant || {
-      full_name: '',
-      email: '',
-      phone_number: '',
-      date_of_birth: '',
-      gender: '',
-      nationality: '',
-      marital_status: '',
-      occupation: '',
-      income_range: '',
-      profile_photo: undefined,
+  const { data: initialData, isLoading } = useQuery({
+    queryKey: ['tenant', tenantId],
+    queryFn: () => fetchTenant(tenantId!),
+    enabled: !!tenantId,
+  });
 
-      id_type: '',
-      id_number: '',
-      id_document_front: undefined,
-      id_document_back: undefined,
-      selfie_photo: undefined,
-      kra_pin: '',
-      nhif_insurance_no: '',
-
-      property_id: '',
-      unit_id: '',
-      move_in_date: '',
-      lease_start_date: '',
-      lease_end_date: '',
-      lease_duration_months: 0,
-      rent_amount: 0,
-      rent_cycle: '',
-      security_deposit_amount: 0,
-      payment_method: '',
-      rent_due_date: 0,
-      lease_status: '',
-      lease_agreement_file: undefined,
-
-      additional_documents: [],
-
-      emergency_contact_full_name: '',
-      emergency_contact_relationship: '',
-      emergency_contact_phone_number: '',
-      emergency_contact_email: '',
-      guarantor_full_name: '',
-      guarantor_phone_number: '',
-      guarantor_email: '',
-
-      contact_method: '',
-      language_preference: '',
-      notification_opt_ins: {},
-
-      data_consent_given: false,
-      lease_agreement_consent_given: false,
-      signature_image: undefined,
+  const form = useForm<TenantOnboardingFormData>({
+    resolver: zodResolver(tenantOnboardingSchema.partial()),
+    defaultValues: {
+      landlord_id: userProfile?.id,
     },
   });
 
+  useEffect(() => {
+    if (initialData) {
+      form.reset(initialData);
+      const stepFromUrl = searchParams.get("step");
+      if (stepFromUrl) {
+        setCurrentStep(parseInt(stepFromUrl, 10) - 1);
+      } else if (initialData.progress_step) {
+        setCurrentStep(initialData.progress_step - 1);
+      }
+    }
+  }, [initialData, form, searchParams]);
+
   const steps = [
-    {
-      title: 'Personal Information',
-      component: <TenantStepPersonalInfo form={form as UseFormReturn<TenantFormData>} />,
-      schema: z.object({}),
-    },
-    {
-      title: 'National ID & Verification',
-      component: <TenantStepIdentification form={form as UseFormReturn<TenantFormData>} />,
-      schema: z.object({}),
-    },
-    {
-      title: 'Tenancy Details',
-      component: <TenantStepLeaseInfo form={form as UseFormReturn<TenantFormData>} />,
-      schema: z.object({}),
-    },
-    {
-      title: 'Supporting Documents',
-      component: <TenantStepAdditionalDocuments form={form as UseFormReturn<TenantFormData>} />,
-      schema: z.object({}),
-    },
-    {
-      title: 'Emergency & Alternate Contacts',
-      component: <TenantStepEmergency form={form as UseFormReturn<TenantFormData>} />,
-      schema: z.object({}),
-    },
-    {
-      title: 'Communication Preferences',
-      component: <TenantStepCommunicationPreferences form={form as UseFormReturn<TenantFormData>} />,
-      schema: z.object({}),
-    },
-    {
-      title: 'Declarations & Consents',
-      component: <TenantStepDeclarationsConsents form={form as UseFormReturn<TenantFormData>} />,
-      schema: z.object({}),
-    },
-    {
-      title: 'Review & Submit',
-      component: <TenantStepReview form={form as UseFormReturn<TenantFormData>} />,
-      schema: z.object({}), // Full schema for final review
-    },
+    { title: 'Personal Information', component: <TenantStepPersonalInfo form={form as UseFormReturn<TenantOnboardingFormData>} />, schema: tenantOnboardingSchema.pick({ full_name: true, email: true, phone_number: true, date_of_birth: true, occupation: true }) },
+    { title: 'Tenancy Details', component: <TenantStepLeaseInfo form={form as UseFormReturn<TenantOnboardingFormData>} />, schema: tenantOnboardingSchema.pick({ property_id: true, unit_id: true, lease_start_date: true, lease_end_date: true, rent_amount: true, deposit_amount: true }) },
+    { title: 'Identification', component: <TenantStepIdentification form={form as UseFormReturn<TenantOnboardingFormData>} />, schema: tenantOnboardingSchema.pick({ id_type: true, id_number: true, id_document_front: true, id_document_back: true }) },
+    { title: 'Emergency Contact', component: <TenantStepEmergency form={form as UseFormReturn<TenantOnboardingFormData>} />, schema: tenantOnboardingSchema.pick({ emergency_contact_name: true, emergency_contact_phone: true, emergency_contact_relationship: true }) },
+    { title: 'Additional Documents', component: <TenantStepAdditionalDocuments form={form as UseFormReturn<TenantOnboardingFormData>} />, schema: tenantOnboardingSchema.pick({ employment_letter: true, payslips: true, bank_statements: true }) },
+    { title: 'Review & Submit', component: <TenantStepReview form={form as UseFormReturn<TenantOnboardingFormData>} />, schema: tenantOnboardingSchema },
   ];
+
+  const updateProgress = async (step: number) => {
+    if (tenantId) {
+      await supabase.from('tenants').update({ progress_step: step }).eq('id', tenantId);
+      setSearchParams({ step: step.toString() });
+    }
+  };
 
   const handleNext = async () => {
     const currentStepSchema = steps[currentStep].schema;
-    const isValid = await form.trigger(Object.keys(currentStepSchema.shape) as (keyof TenantFormData)[]);
-
+    const isValid = await form.trigger(Object.keys(currentStepSchema.shape) as (keyof TenantOnboardingFormData)[]);
     if (isValid) {
+      const nextStep = currentStep + 2;
       setCurrentStep((prev) => prev + 1);
-    } else {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields for this step.",
-        variant: "destructive",
-      });
+      updateProgress(nextStep);
     }
   };
 
   const handleBack = () => {
+    const prevStep = currentStep;
     setCurrentStep((prev) => prev - 1);
+    updateProgress(prevStep);
   };
 
-  const onSubmit = async (data: TenantFormData) => {
+  const onSubmit = async (data: TenantOnboardingFormData) => {
     setIsSubmitting(true);
-    
-    setIsSubmitting(true);
+    const promise = async () => {
+      if (!userProfile || !tenantId) throw new Error("Something went wrong. Please try again.");
 
-    const uploadFile = async (file: File | undefined, path: string): Promise<string | null> => {
-      if (!file) return null;
-      const fileExtension = file.name.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExtension}`;
-      const filePath = `${path}/${fileName}`;
+      // File upload logic would go here
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('tenant_documents') // Assuming 'tenant_documents' is your bucket name
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
+      const { error } = await supabase
+        .from('tenants')
+        .update({ ...data, onboarding_status: 'complete', is_complete: true })
+        .eq('id', tenantId);
 
-      if (uploadError) {
-        throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
-      }
+      if (error) throw error;
 
-      const { data: publicUrlData } = supabase.storage
-        .from('tenant_documents')
-        .getPublicUrl(filePath);
-
-      return publicUrlData.publicUrl;
+      await queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      form.reset();
+      navigate('/dashboard/landlord/tenants');
     };
 
-    try {
-      // Upload individual files
-      const profilePhotoUrl = await uploadFile(data.profile_photo, `tenants/${userProfile?.id}/profile_photos`);
-      const leaseAgreementFileUrl = await uploadFile(data.lease_agreement_file, `tenants/${userProfile?.id}/lease_agreements`);
-      const idDocumentFrontUrl = await uploadFile(data.id_document_front, `tenants/${userProfile?.id}/identification`);
-      const idDocumentBackUrl = await uploadFile(data.id_document_back, `tenants/${userProfile?.id}/identification`);
-      const selfiePhotoUrl = await uploadFile(data.selfie_photo, `tenants/${userProfile?.id}/identification`);
-      const signatureImageUrl = await uploadFile(data.signature_image, `tenants/${userProfile?.id}/signatures`);
-
-      const tenantData = {
-        full_name: data.full_name,
-        email: data.email,
-        phone_number: data.phone_number,
-        date_of_birth: data.date_of_birth,
-        gender: data.gender,
-        nationality: data.nationality,
-        marital_status: data.marital_status,
-        occupation: data.occupation,
-        income_range: data.income_range,
-        profile_photo_url: profilePhotoUrl,
-        // System-generated fields will be handled by Supabase defaults or triggers
-      };
-
-      let tenantId: string | null = null;
-
-      if (editingTenant) {
-        // Update tenant data
-        const { data: updatedTenant, error: updateError } = await supabase
-          .from('tenants')
-          .update(tenantData)
-          .eq('id', editingTenant.id)
-          .select();
-        if (updateError) throw updateError;
-        tenantId = updatedTenant[0].id;
-      } else {
-        // Insert new tenant data
-        const { data: newTenant, error: insertError } = await supabase
-          .from('tenants')
-          .insert(tenantData)
-          .select();
-        if (insertError) throw insertError;
-        tenantId = newTenant[0].id;
-      }
-
-      if (!tenantId) {
-        throw new Error("Failed to retrieve tenant ID after insert/update.");
-      }
-
-      // Insert/Update tenant_identifications
-      const identificationData = {
-        tenant_id: tenantId,
-        id_type: data.id_type,
-        id_number: data.id_number,
-        id_front_url: idDocumentFrontUrl,
-        id_back_url: idDocumentBackUrl,
-        selfie_url: selfiePhotoUrl,
-        kra_pin: data.kra_pin,
-        nhif_insurance_no: data.nhif_insurance_no,
-      };
-      const { error: identificationError } = await supabase
-        .from('tenant_identifications')
-        .upsert(identificationData, { onConflict: 'tenant_id' });
-      if (identificationError) throw identificationError;
-
-      // Insert/Update lease_agreements
-      const leaseAgreementData = {
-        tenant_id: tenantId,
-        property_id: data.property_id,
-        unit_id: data.unit_id,
-        move_in_date: data.move_in_date,
-        lease_start_date: data.lease_start_date,
-        lease_end_date: data.lease_end_date,
-        lease_duration_months: data.lease_duration_months,
-        rent_amount: data.rent_amount,
-        rent_cycle: data.rent_cycle,
-        security_deposit_amount: data.security_deposit_amount,
-        payment_method: data.payment_method,
-        rent_due_date: data.rent_due_date,
-        lease_status: data.lease_status,
-        lease_agreement_url: leaseAgreementFileUrl,
-      };
-      const { error: leaseError } = await supabase
-        .from('lease_agreements')
-        .upsert(leaseAgreementData, { onConflict: 'tenant_id' }); // Assuming one lease per tenant for simplicity, adjust if multiple leases are possible
-      if (leaseError) throw leaseError;
-
-      // Insert/Update tenant_contacts (emergency contact)
-      const emergencyContactData = {
-        tenant_id: tenantId,
-        contact_type: 'emergency',
-        full_name: data.emergency_contact_full_name,
-        relationship: data.emergency_contact_relationship,
-        phone_number: data.emergency_contact_phone_number,
-        email: data.emergency_contact_email,
-      };
-      const { error: emergencyContactError } = await supabase
-        .from('tenant_contacts')
-        .upsert(emergencyContactData, { onConflict: 'tenant_id, contact_type' });
-      if (emergencyContactError) throw emergencyContactError;
-
-      // Insert/Update tenant_contacts (guarantor contact, if provided)
-      if (data.guarantor_full_name) {
-        const guarantorContactData = {
-          tenant_id: tenantId,
-          contact_type: 'guarantor',
-          full_name: data.guarantor_full_name,
-          phone_number: data.guarantor_phone_number,
-          email: data.guarantor_email,
-        };
-        const { error: guarantorContactError } = await supabase
-          .from('tenant_contacts')
-          .upsert(guarantorContactData, { onConflict: 'tenant_id, contact_type' });
-        if (guarantorContactError) throw guarantorContactError;
-      }
-
-      // Insert/Update tenant_preferences
-      const preferencesData = {
-        tenant_id: tenantId,
-        contact_method: data.contact_method,
-        language_preference: data.language_preference,
-        notification_opt_ins: (data.notification_opt_ins && Object.keys(data.notification_opt_ins).length > 0)
-          ? data.notification_opt_ins
-          : null,
-      };
-      const { error: preferencesError } = await supabase
-        .from('tenant_preferences')
-        .upsert(preferencesData, { onConflict: 'tenant_id' });
-      if (preferencesError) throw preferencesError;
-
-      // Insert/Update tenant_consents
-      const consentsData = {
-        tenant_id: tenantId,
-        data_consent_given: data.data_consent_given,
-        lease_agreement_consent_given: data.lease_agreement_consent_given,
-        signature_image_url: signatureImageUrl,
-        signed_at: new Date().toISOString(),
-      };
-      const { error: consentsError } = await supabase
-        .from('tenant_consents')
-        .upsert(consentsData, { onConflict: 'tenant_id' });
-      if (consentsError) throw consentsError;
-
-      // Handle additional documents
-      if (data.additional_documents && data.additional_documents.length > 0 && tenantId) {
-        for (const doc of data.additional_documents) {
-          if (doc.file) {
-            const docUrl = await uploadFile(doc.file, `tenants/${tenantId}/additional_documents`);
-            if (docUrl) {
-              const { error: docInsertError } = await supabase
-                .from('tenant_documents')
-                .insert({
-                  tenant_id: tenantId,
-                  document_type: doc.caption || 'other', // Use caption as document_type or default to 'other'
-                  document_url: docUrl,
-                  uploaded_at: new Date().toISOString(),
-                });
-              if (docInsertError) {
-                console.error(`Failed to insert additional document ${doc.file.name}:`, docInsertError);
-              }
-            }
-          }
-        }
-      }
-
-      toast({
-        title: "Success",
-        description: `Tenant ${editingTenant ? 'updated' : 'added'} successfully`,
-      });
-
-      form.reset();
-      navigate('/dashboard/property-management/tenants');
-    } catch (error) {
-      console.error('Error saving tenant:', error);
-      toast({
-        title: "Error",
-        description: `Failed to ${editingTenant ? 'update' : 'add'} tenant: ${error.message}`,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const onError = (errors: any) => {
-    console.error("Form validation errors:", errors);
-    toast({
-      title: "Validation Error",
-      description: "Please fill in all required fields correctly.",
-      variant: "destructive",
+    toast.promise(promise(), {
+      loading: 'Submitting tenant data...',
+      success: 'Tenant submitted successfully!',
+      error: (err) => err.message || 'Failed to submit tenant.',
     });
 
-    // Find the first field with an error and scroll to it
-    const firstErrorField = Object.keys(errors)[0];
-    if (firstErrorField) {
-      const element = document.getElementsByName(firstErrorField)[0];
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
+    setIsSubmitting(false);
   };
+
+  if (isLoading) {
+    return <div>Loading tenant details...</div>;
+  }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{editingTenant ? 'Edit Tenant' : 'Add New Tenant'}</CardTitle>
-        <div className="text-sm text-gray-500">Step {currentStep + 1} of {steps.length}: {steps[currentStep].title}</div>
+        <CardTitle>Finish Tenant Setup</CardTitle>
+        <div className="text-sm text-muted-foreground">Step {currentStep + 1} of {steps.length}: {steps[currentStep].title}</div>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {steps[currentStep].component}
-
             <div className="flex justify-between mt-6">
               {currentStep > 0 && (
                 <Button type="button" variant="outline" onClick={handleBack}>
                   Back
                 </Button>
               )}
-              <div className="flex-grow"></div> {/* Spacer to push buttons to ends */}
+              <div className="flex-grow"></div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button type="button" variant="outline" className="mr-2">
-                    Cancel
-                  </Button>
+                  <Button type="button" variant="outline" className="mr-2">Cancel</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to cancel onboarding? All unsaved data will be lost.
-                    </AlertDialogDescription>
+                    <AlertDialogDescription>Your progress will be saved as a draft.</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>No, continue</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => navigate('/dashboard/landlord/tenants')}>
-                      Yes, cancel
-                    </AlertDialogAction>
+                    <AlertDialogCancel>Continue Editing</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => navigate('/dashboard/landlord/tenants')}>Yes, Cancel</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              {currentStep < steps.length - 1 && (
-                <Button type="button" onClick={handleNext}>
-                  Next
-                </Button>
-              )}
-              {currentStep === steps.length - 1 && (
+              {currentStep < steps.length - 1 ? (
+                <Button type="button" onClick={handleNext}>Next</Button>
+              ) : (
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Submitting...' : (editingTenant ? 'Update Tenant' : 'Add Tenant')}
+                  {isSubmitting ? 'Submitting...' : 'Submit Onboarding'}
                 </Button>
               )}
             </div>

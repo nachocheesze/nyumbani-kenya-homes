@@ -190,7 +190,7 @@ const LandlordProperties = () => {
                   <TableHead>Type</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Rent</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Completion Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -205,32 +205,42 @@ const LandlordProperties = () => {
                     </TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${
-                        property.is_available 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
+                        property.onboarding_status === 'complete'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
                       }`}>
-                        {property.is_available ? 'Available' : 'Occupied'}
+                        {property.onboarding_status === 'complete' ? 'Complete' : 'Draft'}
                       </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
+                        {property.onboarding_status === 'complete' ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/properties/${property.id}`)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/dashboard/landlord/properties/${property.id}/edit?step=${property.progress_step || 2}`)}
+                          >
+                            Finish Setup
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
                           size="sm"
-                          onClick={() => navigate(`/properties/${property.id}`)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => navigate(`/dashboard/landlord/properties/edit/${property.id}`)}
+                          onClick={() => navigate(`/dashboard/landlord/properties/${property.id}/edit`)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
                         {(userProfile?.role === 'super_admin' || userProfile?.role === 'admin' || property.landlord_id === userProfile?.id) && (
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => handleDelete(property.id)}
                           >

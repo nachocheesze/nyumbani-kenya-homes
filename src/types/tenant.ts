@@ -30,4 +30,5 @@ export interface Tenant {
   contacts?: TenantContact[];
   preferences?: TenantPreference;
   consents?: TenantConsent;
+  is_complete?: boolean;
 }

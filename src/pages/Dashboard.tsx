@@ -17,6 +17,7 @@ import ShortTermHostDashboard from "@/components/dashboard/overview/ShortTermHos
 
 // Import property management
 import PropertyOnboardingForm from '@/components/onboarding/properties/PropertyOnboardingForm';
+import TenantOnboardingForm from '@/components/onboarding/tenants/TenantOnboardingForm';
 
 // Import tenant-specific pages
 import TenantRent from "@/components/dashboard/tenant/TenantRent";
@@ -155,6 +156,7 @@ const Dashboard = () => {
       {/* Landlord-specific routes */}
       <Route path="/landlord/properties" element={<LandlordProperties />} />
       <Route path="/landlord/tenants" element={<LandlordTenants />} />
+      <Route path="/landlord/tenants/onboarding/:recordId" element={<TenantOnboardingForm />} />
       <Route path="/landlord/leases" element={<LandlordLeases />} />
       <Route path="/landlord/requests" element={<LandlordRequests />} />
       <Route path="/landlord/transactions" element={<LandlordTransactions />} />

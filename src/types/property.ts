@@ -55,4 +55,5 @@ export interface Property {
   internal_notes?: string;
   main_image_url?: string;
   units?: Unit[]; // Added units field
+  is_complete?: boolean;
 }
