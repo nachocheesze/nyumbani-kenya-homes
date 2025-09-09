@@ -143,7 +143,7 @@ const LandlordDashboard = () => {
             <CardDescription>Manage your listed properties</CardDescription>
           </div>
           <Button asChild>
-            <Link to="/properties/new">
+            <Link to="/dashboard/landlord/properties/add">
               <Plus className="h-4 w-4 mr-2" />
               Add Property
             </Link>

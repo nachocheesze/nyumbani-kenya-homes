@@ -1,8 +1,9 @@
 
+import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, LogOut, Wallet } from "lucide-react";
+import { Bell, LogOut, Plus, Wallet } from "lucide-react";
 
 interface DashboardHeaderProps {
   user: {
@@ -34,6 +35,37 @@ const DashboardHeader = ({ user }: DashboardHeaderProps) => {
       </div>
 
       <div className="flex items-center space-x-4">
+        import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
+// ... (keep existing imports)
+
+const DashboardHeader = ({ user }: DashboardHeaderProps) => {
+  return (
+    // ... (keep existing JSX)
+      <div className="flex items-center space-x-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Quick Add
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem asChild>
+              <Link to="/dashboard/quick-add?tab=property">Quick Add Property</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/dashboard/quick-add?tab=tenant">Quick Add Tenant</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {user.walletBalance !== undefined && (
+          // ... (keep existing JSX)
+        )}
+      </div>
+    // ... (keep existing JSX)
+  );
+};
         {user.walletBalance !== undefined && (
           <div className="text-right">
             <p className="text-sm text-gray-600">Wallet Balance</p>

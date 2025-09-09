@@ -10,13 +10,17 @@ import Index from "./pages/Index";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
 import Dashboard from "./pages/Dashboard";
+import AddProperty from "./pages/properties/AddProperty";
 
-import PropertyManagement from "./components/property-management/PropertiesManagement";
 import PropertyOnboardingForm from "./components/onboarding/properties/PropertyOnboardingForm";
 import TenantOnboardingForm from "./components/onboarding/tenants/TenantOnboardingForm";
+import AddTenantPage from "./pages/dashboard/tenants/AddTenantPage";
+import EditTenantPage from "./pages/dashboard/tenants/EditTenantPage";
+import TenantsPage from "./pages/dashboard/tenants/TenantsPage";
 
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { QuickAdd } from "./pages/QuickAdd";
 const queryClient = new QueryClient();
 
 // Component to handle conditional header rendering
@@ -32,12 +36,18 @@ const AppContent = () => {
         <Route path="/" element={<Index />} />
         <Route path="/properties" element={<Properties />} />
         <Route path="/properties/:id" element={<PropertyDetail />} />
-        
+        {/* Alias for dev/testing */}
+        <Route path="/properties/add" element={<ProtectedRoute><DashboardLayout><AddProperty /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/quick-add" element={<ProtectedRoute><DashboardLayout><AddProperty /></DashboardLayout></ProtectedRoute>} />
+
         <Route path="/dashboard/*" element={<ProtectedRoute>
               <DashboardLayout>
                 <Routes>
-                  <Route path="property-management/properties/add" element={<PropertyOnboardingForm />} />
-                  <Route path="landlord/tenants/add" element={<TenantOnboardingForm />} />
+                  <Route path="landlord/properties/add" element={<AddProperty />} />
+                  <Route path="landlord/properties/:id/edit" element={<PropertyOnboardingForm />} />
+                  <Route path="landlord/tenants" element={<TenantsPage />} />
+                  <Route path="landlord/tenants/add" element={<AddTenantPage />} />
+                  <Route path="landlord/tenants/:id/edit" element={<EditTenantPage />} />
                   <Route path="*" element={<Dashboard />} />
                 </Routes>
               </DashboardLayout>
